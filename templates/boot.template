@@ -1,0 +1,6 @@
+#!ipxe
+
+kernel http://10.3.88.10/centos/images/pxeboot/vmlinuz
+initrd http://10.3.88.10/centos/images/pxeboot/initrd.img
+imgargs vmlinuz initrd=initrd.img ip=dhcp devfs=nomount inst.ks=http://10.3.88.10/centos/ks.txt
+boot
