@@ -31,6 +31,7 @@ function remove(pid){
     <h1>Available servers</h1>
     <p class="lead">This is the list of servers without applied profile</p>
 
+    <div class="table-responsive">
     <table class="table">
     <thead>
     <tr>
@@ -62,5 +63,6 @@ function remove(pid){
         </tr>
         {%- endif %}
      {% endfor %}
-    </table> 
+    </table>
+    </div>
 {% endblock %}
