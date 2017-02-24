@@ -41,7 +41,10 @@ class Reservation(object):
         self.save()
 
     def get(self, uuid):
-        return self.data[uuid]
+        try:
+            return self.data[uuid]
+        except KeyError:
+            return ""
 
 app = Flask(__name__)
 sockets = Sockets(app)
@@ -83,7 +86,9 @@ def handle_invalid_usage(error):
 
 
 @sockets.route('/reserve/<uuid>')
-def echo_socket(ws, uuid):
+def reserve(ws, uuid):
+    owner = ws.receive()
+    resa.reserve(uuid, owner)
     ws.send(uuid)
 
 
@@ -120,7 +125,8 @@ def ready2deploy():
                     'name': server['name'],
                     'uuid': server['uuid'],
                     'macaddress': macaddress,
-                    'powerState': server['powerState']
+                    'powerState': server['powerState'],
+                    'owner': resa.get(server['uuid'])
                     })
     html = render_template("ready2deploy.html", data2print)
     return html

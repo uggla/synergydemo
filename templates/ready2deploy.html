@@ -11,7 +11,10 @@ function reserve(uuid){
     if ("WebSocket" in window) {
         url = "ws://" + server + "/reserve/" + uuid
         ws = new WebSocket(url);
-        ws.onmessage = function (msg) { alert(msg.data) };
+        ws.onopen = function (event) { ws.send($("#owner").val()); };
+        ws.onmessage = function (msg) {
+            msg = msg.data + " registered."
+            alert(msg) };
     } else {
         alert("WebSocket not supported");
     }
@@ -30,7 +33,7 @@ function reserve(uuid){
 
 {% block content %}
     <h1>Ready to deploy servers</h1>
-    <p class="lead">This is the list of servers that can be deployed with docker</p>
+    <p class="text-left lead">This is the list of servers that can be reserved and deployed by your team.</p>
 
     <div class="table-responsive">
     <table class="table">
@@ -59,7 +62,7 @@ function reserve(uuid){
           <td class="text-left">{{ server["name"] }}</td>
           <td class="text-left">{{ server["macaddress"] }}</td>
           <td class="text-left">{{ server["powerState"] }}</td>
-          <td class="text-left"><input type="text" id="owner"><br><br>
+          <td class="text-left"><input type="text" id="owner" value="{{ server.owner }}"><br><br>
           <!--
           <button id="reserve" type="button" class="btn btn-primary" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
           <button id="reserve" type="button" class="btn btn-primary" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
