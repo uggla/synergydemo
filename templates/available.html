@@ -1,0 +1,66 @@
+{% extends "navbar.html" %}
+
+{% block scripts %}
+<script>
+$( document ).ready(function() {
+	console.log( "Document ready !" );
+});
+
+function apply(pid){
+    window.location = "applyprofile";
+}
+
+function remove(pid){
+    var url = "removeprofile/" + pid;
+    window.location = url;
+}
+
+</script>
+{% endblock %}
+
+
+{% block navmenu %}
+<!-- Menu -->
+<li class="active"><a href="/available">Available servers</a></li>
+<li><a href="/ready2deploy">Servers ready to deploy</a></li>
+<li><a href="/deployed">Deployed servers</a></li>
+{% endblock %}
+
+
+{% block content %}
+    <h1>Available servers</h1>
+    <p class="lead">This is the list of servers without applied profile</p>
+
+    <table class="table">
+    <thead>
+    <tr>
+      <th>Server image</th>
+      <th>Server type</th>
+      <th>Name and location</th>
+      <th>uuid</th>
+      <th>Apply</th>
+      <th>Remove</th>
+    </tr>
+    </thead>
+    {%- for server in  r %}
+        {%- if  not server["serverProfileUri"] %}
+        <tr>
+          {%- if  server["shortModel"]=="SY 480 Gen9" %}
+          <td class="text-left"><img src="/img/sy480.png" class="img-responsive" alt="sy480"></td>
+          {% elif server["shortModel"]=="SY 620 Gen9" %}
+          <td class="text-left"><img src="/img/sy620.png" class="img-responsive" alt="sy620"></td>
+          {% elif server["shortModel"]=="SY 680 Gen9" %}
+          <td class="text-left"><img src="/img/sy680.png" class="img-responsive" alt="sy620"></td>
+          {% else %}
+          <td class="text-left"><img src="/img/server.png" class="img-responsive" alt="genericsrv"></td>
+          {%- endif %}
+          <td class="text-left">{{ server["shortModel"] }}</td>
+          <td class="text-left">{{ server["name"] }}</td>
+          <td class="text-left">{{ server["uuid"] }}</td>
+          <td class="text-left"><button id="apply" type="button" class="btn btn-primary" onClick="apply('{{ server["uuid"] }}')">Apply</button></td>
+          <td class="text-left"><button id="remove" type="button" class="btn btn-danger" onClick="remove('{{ server["uuid"] }}')">Remove</button></td>
+        </tr>
+        {%- endif %}
+     {% endfor %}
+    </table> 
+{% endblock %}

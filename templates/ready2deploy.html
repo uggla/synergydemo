@@ -1,0 +1,72 @@
+{% extends "navbar.html" %}
+
+{% block scripts %}
+<script>
+var server = 'localhost:5000';
+$( document ).ready(function() {
+	console.log( "Document ready !" );
+});
+
+function reserve(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/reserve/" + uuid
+        ws = new WebSocket(url);
+        ws.onmessage = function (msg) { alert(msg.data) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+</script>
+{% endblock %}
+
+
+{% block navmenu %}
+<!-- Menu -->
+<li><a href="/available">Available servers</a></li>
+<li class="active"><a href="/ready2deploy">Servers ready to deploy</a></li>
+<li><a href="/deployed">Deployed server</a></li>
+{% endblock %}
+
+
+{% block content %}
+    <h1>Ready to deploy servers</h1>
+    <p class="lead">This is the list of servers that can be deployed with docker</p>
+
+    <table class="table">
+    <thead>
+    <tr>
+      <th>Server image</th>
+      <th>Server type</th>
+      <th>Name / Location</th>
+      <th>MAC@ / IP</th>
+      <th>Status</th>
+      <th>Reserve</th>
+    </tr>
+    </thead>
+    {%- for server in  r %}
+        <tr>
+          {%- if  server["shortModel"]=="SY 480 Gen9" %}
+          <td class="text-left"><img src="/img/sy480.png" class="img-responsive" alt="sy480"></td>
+          {% elif server["shortModel"]=="SY 620 Gen9" %}
+          <td class="text-left"><img src="/img/sy620.png" class="img-responsive" alt="sy620"></td>
+          {% elif server["shortModel"]=="SY 680 Gen9" %}
+          <td class="text-left"><img src="/img/sy680.png" class="img-responsive" alt="sy620"></td>
+          {% else %}
+          <td class="text-left"><img src="/img/server.png" class="img-responsive" alt="genericsrv"></td>
+          {%- endif %}
+          <td class="text-left">{{ server["shortModel"] }}</td>
+          <td class="text-left">{{ server["name"] }}</td>
+          <td class="text-left">{{ server["macaddress"] }}</td>
+          <td class="text-left">{{ server["powerState"] }}</td>
+          <td class="text-left"><input type="text" id="owner"><br><br>
+          <!--
+          <button id="reserve" type="button" class="btn btn-primary" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
+          <button id="reserve" type="button" class="btn btn-primary" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
+          -->
+          <button id="reserve" type="button" class="btn btn-primary btn-lg btn-block" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
+          <button id="reserve" type="button" class="btn btn-primary btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
+          </td>
+        </tr>
+     {% endfor %}
+    </table> 
+{% endblock %}
