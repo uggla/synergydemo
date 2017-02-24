@@ -6,15 +6,17 @@ $( document ).ready(function() {
 	console.log( "Document ready !" );
 });
 
-function apply(pid){
-    window.location = "applyprofile";
+function notify(pid){
+    msg = "Infrastructure team notified !\n Server uuid: "+ pid + " will be installed for you"
+    alert(msg)
 }
 
+/*
 function remove(pid){
     var url = "removeprofile/" + pid;
     window.location = url;
 }
-
+*/
 </script>
 {% endblock %}
 
@@ -29,7 +31,7 @@ function remove(pid){
 
 {% block content %}
     <h1>Available servers</h1>
-    <p class="lead">This is the list of servers without applied profile</p>
+    <p class="lead">This is the list of servers available (without an applied profile), notify the infrastructure team that will assign the server you want.</p>
 
     <div class="table-responsive">
     <table class="table">
@@ -39,8 +41,7 @@ function remove(pid){
       <th>Server type</th>
       <th>Name and location</th>
       <th>uuid</th>
-      <th>Apply</th>
-      <th>Remove</th>
+      <th>Action</th>
     </tr>
     </thead>
     {%- for server in  r %}
@@ -58,8 +59,7 @@ function remove(pid){
           <td class="text-left">{{ server["shortModel"] }}</td>
           <td class="text-left">{{ server["name"] }}</td>
           <td class="text-left">{{ server["uuid"] }}</td>
-          <td class="text-left"><button id="apply" type="button" class="btn btn-primary" onClick="apply('{{ server["uuid"] }}')">Apply</button></td>
-          <td class="text-left"><button id="remove" type="button" class="btn btn-danger" onClick="remove('{{ server["uuid"] }}')">Remove</button></td>
+          <td class="text-left"><button id="apply" type="button" class="btn btn-primary" onClick="notify('{{ server["uuid"] }}')">Notify</button></td>
         </tr>
         {%- endif %}
      {% endfor %}
