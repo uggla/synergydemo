@@ -85,11 +85,11 @@ def handle_invalid_usage(error):
     return response
 
 
-@sockets.route('/reserve/<uuid>')
-def reserve(ws, uuid):
-    owner = ws.receive()
-    resa.reserve(uuid, owner)
-    ws.send(uuid)
+@sockets.route('/reserve')
+def reserve(ws):
+    data = json.loads(ws.receive())
+    resa.reserve(data["uuid"], data["owner"])
+    ws.send(data["uuid"])
 
 
 @sockets.route('/bla')

@@ -7,18 +7,31 @@ $( document ).ready(function() {
 	console.log( "Document ready !" );
 });
 
+
 function reserve(uuid){
     if ("WebSocket" in window) {
-        url = "ws://" + server + "/reserve/" + uuid
+        url = "ws://" + server + "/reserve"
+        owner = '#' + uuid + '-owner';
+
         ws = new WebSocket(url);
-        ws.onopen = function (event) { ws.send($("#owner").val()); };
+
         ws.onmessage = function (msg) {
-            msg = msg.data + " registered."
-            alert(msg) };
+            msg = msg.data + " registered.";
+            notify(msg);
+        }
+
+        var data = {
+            owner: $(owner).val(),
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
     } else {
         alert("WebSocket not supported");
     }
 }
+
 </script>
 {% endblock %}
 
@@ -34,7 +47,8 @@ function reserve(uuid){
 {% block content %}
     <h1>Ready to deploy servers</h1>
     <p class="text-left lead">This is the list of servers that can be reserved and deployed by your team.</p>
-
+    <div id="usermsg">
+    </div>
     <div class="table-responsive">
     <table class="table">
     <thead>
@@ -62,7 +76,7 @@ function reserve(uuid){
           <td class="text-left">{{ server["name"] }}</td>
           <td class="text-left">{{ server["macaddress"] }}</td>
           <td class="text-left">{{ server["powerState"] }}</td>
-          <td class="text-left"><input type="text" id="owner" value="{{ server.owner }}"><br><br>
+          <td class="text-left"><input type="text" id="{{ server["uuid"] }}-owner" value="{{ server.owner }}"><br><br>
           <!--
           <button id="reserve" type="button" class="btn btn-primary" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
           <button id="reserve" type="button" class="btn btn-primary" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
