@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import datetime
 from flask import Flask
 from flask import jsonify
 from flask import request
@@ -101,6 +102,29 @@ def release(ws):
     ws.send(data["uuid"])
 
 
+@sockets.route('/deploy')
+def deploy(ws):
+    data = json.loads(ws.receive())
+    resa.release(data["uuid"])
+    ws.send(data["uuid"])
+
+
+@sockets.route('/status')
+def status(ws):
+    while not ws.closed:
+        server_hardware_all = oneview_client.server_hardware.get_all()
+        for server in server_hardware_all:
+            if server['serverProfileUri'] is not None:
+                profile = oneview_client.server_profiles.get(
+                        server['serverProfileUri'])
+                if 'iPXE' in profile["name"]:
+                    data = {"uuid": server["uuid"],
+                            "power": server["powerState"],
+                            "timestamp": datetime.datetime.now().isoformat()}
+                    ws.send(json.dumps(data))
+        time.sleep(5)
+
+
 @sockets.route('/bla')
 def bla_socket(ws):
     while not ws.closed:
@@ -125,9 +149,6 @@ def ready2deploy():
     # Get hardware
     server_hardware_all = oneview_client.server_hardware.get_all()
 
-    # Get profiles
-    all_profiles = oneview_client.server_profiles.get_all()
-
     # Craft required data
     data2print = []
     for server in server_hardware_all:
@@ -151,6 +172,8 @@ def ready2deploy():
 
 @app.route('/deployed')
 def deployed():
+    # Get hardware
+    server_hardware_all = oneview_client.server_hardware.get_all()
     html = render_template("deployed.html", server_hardware_all)
     return html
 

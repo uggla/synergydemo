@@ -5,6 +5,7 @@
 var server = 'localhost:5000';
 $( document ).ready(function() {
 	console.log( "Document ready !" );
+    status();
 });
 
 
@@ -60,6 +61,24 @@ function release(uuid){
         console.log(data)
         // Send the msg object as a JSON-formatted string.
         ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function status(){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/status"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            var data = JSON.parse(msg.data);
+            console.log(data);
+            status = '#' + data.uuid + '-status';
+            $(status).html(data.power);
+        }
     } else {
         alert("WebSocket not supported");
     }
@@ -121,7 +140,9 @@ function checkinput(uuid){
           <td class="text-left">{{ server["shortModel"] }}</td>
           <td class="text-left">{{ server["name"] }}</td>
           <td class="text-left">{{ server["macaddress"] }}</td>
-          <td class="text-left">{{ server["powerState"] }}</td>
+          <td class="text-left">
+              <div id="{{ server["uuid"] }}-status"></div>
+          </td>
           <td class="text-left"><input type="text" id="{{ server["uuid"] }}-owner" value="{{ server.owner }}" onkeyup="checkinput('{{ server["uuid"] }}')"><br><br>
           <!--
           <button id="reserve" type="button" class="btn btn-primary" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
