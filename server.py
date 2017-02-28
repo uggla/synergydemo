@@ -118,11 +118,43 @@ def status(ws):
                 profile = oneview_client.server_profiles.get(
                         server['serverProfileUri'])
                 if 'iPXE' in profile["name"]:
-                    data = {"uuid": server["uuid"],
-                            "power": server["powerState"],
-                            "timestamp": datetime.datetime.now().isoformat()}
+                    data = define_status(server, profile)
                     ws.send(json.dumps(data))
         time.sleep(5)
+
+
+def define_status(server, profile):
+    flag = None
+    content = None
+    status = ''
+    macaddress = get_mac(profile)
+    flagpath = 'flags/' + macaddress
+    if os.path.exists(flagpath):
+        flag = True
+        # Checking inside flag
+        with open(flagpath, 'r') as trace:
+            content = trace.read()
+            if 'deployed' in content:
+                content = True
+
+    if (server["powerState"] == 'On' and content is True):
+        status = 'Deployed'
+    elif (server["powerState"] == 'On' and flag is True):
+        status = 'Deployment in progress'
+    elif (server["powerState"] == 'On'):
+        status = 'PowerOn'
+    elif (server["powerState"] == 'Off'):
+        status = 'PowerOff'
+    data = {"uuid": server["uuid"],
+            "status": status,
+            "timestamp": datetime.datetime.now().isoformat()}
+    return data
+
+
+def get_mac(profile):
+    macaddress = profile['connections'][0]['mac'].lower()
+    macaddress = macaddress.replace(':', '')
+    return macaddress
 
 
 @sockets.route('/bla')
@@ -156,8 +188,7 @@ def ready2deploy():
             profile = oneview_client.server_profiles.get(
                     server['serverProfileUri'])
             if 'iPXE' in profile["name"]:
-                macaddress = profile['connections'][0]['mac'].lower()
-                macaddress = macaddress.replace(':', '')
+                macaddress = get_mac(profile)
                 data2print.append({
                     'shortModel': server['shortModel'],
                     'name': server['name'],

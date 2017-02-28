@@ -77,7 +77,7 @@ function status(){
             var data = JSON.parse(msg.data);
             console.log(data);
             status = '#' + data.uuid + '-status';
-            $(status).html(data.power);
+            $(status).html(data.status);
         }
     } else {
         alert("WebSocket not supported");
@@ -121,7 +121,7 @@ function checkinput(uuid){
       <th>Server image</th>
       <th>Server type</th>
       <th>Name / Location</th>
-      <th>MAC@ / IP</th>
+      <th>MAC@</th>
       <th>Status</th>
       <th>Owner</th>
     </tr>
