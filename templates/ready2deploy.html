@@ -12,12 +12,16 @@ function reserve(uuid){
     if ("WebSocket" in window) {
         url = "ws://" + server + "/reserve"
         owner = '#' + uuid + '-owner';
+        reserveid = '#' + uuid + '-reserve';
+        releaseid = '#' + uuid + '-release';
 
         ws = new WebSocket(url);
 
         ws.onmessage = function (msg) {
             msg = msg.data + " registered.";
             notify(msg);
+            $(reserveid).prop("disabled", true);
+            $(releaseid).prop("disabled", false);
         }
 
         var data = {
@@ -29,6 +33,48 @@ function reserve(uuid){
         ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
     } else {
         alert("WebSocket not supported");
+    }
+}
+
+
+function release(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/release"
+        owner = '#' + uuid + '-owner';
+        reserveid = '#' + uuid + '-reserve';
+        releaseid = '#' + uuid + '-release';
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            msg = msg.data + " released";
+            notify(msg);
+            $(reserveid).prop("disabled", true);
+            $(releaseid).prop("disabled", false);
+            $(owner).val('');
+        }
+
+        var data = {
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+function checkinput(uuid){
+    owner = '#' + uuid + '-owner';
+    reserveid = '#' + uuid + '-reserve';
+    releaseid = '#' + uuid + '-release';
+    if ($(owner).val() == ''){
+        $(reserveid).prop("disabled", true);
+        $(releaseid).prop("disabled", false);
+    }else{
+        $(reserveid).prop("disabled", false);
+        $(releaseid).prop("disabled", true);
     }
 }
 
@@ -58,7 +104,7 @@ function reserve(uuid){
       <th>Name / Location</th>
       <th>MAC@ / IP</th>
       <th>Status</th>
-      <th>Reserve</th>
+      <th>Owner</th>
     </tr>
     </thead>
     {%- for server in  r %}
@@ -76,13 +122,18 @@ function reserve(uuid){
           <td class="text-left">{{ server["name"] }}</td>
           <td class="text-left">{{ server["macaddress"] }}</td>
           <td class="text-left">{{ server["powerState"] }}</td>
-          <td class="text-left"><input type="text" id="{{ server["uuid"] }}-owner" value="{{ server.owner }}"><br><br>
+          <td class="text-left"><input type="text" id="{{ server["uuid"] }}-owner" value="{{ server.owner }}" onkeyup="checkinput('{{ server["uuid"] }}')"><br><br>
           <!--
           <button id="reserve" type="button" class="btn btn-primary" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
           <button id="reserve" type="button" class="btn btn-primary" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
           -->
-          <button id="reserve" type="button" class="btn btn-primary btn-lg btn-block" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
-          <button id="reserve" type="button" class="btn btn-primary btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
+          <button id="{{ server["uuid"] }}-reserve" type="button" class="btn btn-primary btn-lg btn-block" disabled="disabled" onClick="reserve('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Reserve
+          </button>
+          <button id="{{ server["uuid"] }}-release" type="button" class="btn btn-warning btn-lg btn-block" onClick="release('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Release
+          </button>
+          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-primary btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
           </td>
         </tr>
      {% endfor %}

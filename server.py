@@ -46,6 +46,13 @@ class Reservation(object):
         except KeyError:
             return ""
 
+    def release(self, uuid):
+        try:
+            del self.data[uuid]
+            self.save()
+        except KeyError:
+            pass
+
 app = Flask(__name__)
 sockets = Sockets(app)
 
@@ -66,13 +73,8 @@ config = {
 }
 
 
+# Initialize oneview client
 oneview_client = OneViewClient(config)
-
-# Get hardware
-server_hardware_all = oneview_client.server_hardware.get_all()
-
-# Get profiles
-all_profiles = oneview_client.server_profiles.get_all()
 
 # Initialize reservation
 resa = Reservation()
@@ -92,6 +94,13 @@ def reserve(ws):
     ws.send(data["uuid"])
 
 
+@sockets.route('/release')
+def release(ws):
+    data = json.loads(ws.receive())
+    resa.release(data["uuid"])
+    ws.send(data["uuid"])
+
+
 @sockets.route('/bla')
 def bla_socket(ws):
     while not ws.closed:
@@ -105,12 +114,20 @@ def bla_socket(ws):
 @app.route('/')
 @app.route('/available')
 def available():
+    # Get hardware
+    server_hardware_all = oneview_client.server_hardware.get_all()
     html = render_template("available.html", server_hardware_all)
     return html
 
 
 @app.route('/ready2deploy')
 def ready2deploy():
+    # Get hardware
+    server_hardware_all = oneview_client.server_hardware.get_all()
+
+    # Get profiles
+    all_profiles = oneview_client.server_profiles.get_all()
+
     # Craft required data
     data2print = []
     for server in server_hardware_all:
