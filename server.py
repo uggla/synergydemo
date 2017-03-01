@@ -105,7 +105,10 @@ def release(ws):
 @sockets.route('/deploy')
 def deploy(ws):
     data = json.loads(ws.receive())
-
+    macaddress = get_mac(data["uuid"])
+    flagpath = 'flags/' + macaddress
+    if os.path.exists(flagpath):
+        os.remove(flagpath)
     # Power off server
     try:
         configuration = {
@@ -118,16 +121,6 @@ def deploy(ws):
     except HPOneViewException as e:
         print(e.msg)
 
-## Refresh server state
-#    try:
-#        configuration = {
-#            "refreshState": "RefreshPending"
-#        }
-#        server_refresh = oneview_client.server_hardware.refresh_state(configuration, server_hardware_id)
-#        print("Successfully refreshed the state of the server at:\n   'uri': '{}'".format(
-#            server_refresh['uri']))
-#except HPOneViewException as e:
-#    print(e.msg)
     msg = data["uuid"] + "requested to stop."
     ws.send(msg)
     time.sleep(10)
@@ -263,6 +256,25 @@ def deploy_complete():
         return resp
 
 
+@app.route('/deploy/os', methods=["POST"])
+def deploy_osready():
+    # Write a trace file
+    try:
+        macaddress = request.json['macaddress']
+    except KeyError:
+        raise InvalidUsage(
+                'Invalid key provided should be macaddress', status_code=400)
+
+    filename = "flags/" + macaddress
+    with open(filename, 'w') as tracefile:
+        tracefile.write('osready')
+        tracefile.close()
+        data = {"status": "ok"}
+        resp = jsonify(data)
+        resp.status_code = 200
+        return resp
+
+
 def render_template(template, values=None):
     # Initialize Template system (jinja2)
     templates_path = 'templates'
@@ -285,6 +297,7 @@ def render_template(template, values=None):
 def define_status(server, profile):
     flag = None
     content = None
+    osready = None
     status = ''
     macaddress = get_mac(profile)
     flagpath = 'flags/' + macaddress
@@ -295,9 +308,13 @@ def define_status(server, profile):
             content = trace.read()
             if 'deployed' in content:
                 content = True
+            if 'osready' in content:
+                osready = True
 
     if (server["powerState"] == 'On' and content is True):
-        status = 'Deployed'
+        status = 'OS deployed, rebooting'
+    if (server["powerState"] == 'On' and osready is True):
+        status = 'System ready'
     elif (server["powerState"] == 'On' and flag is True):
         status = 'Deployment in progress'
     elif (server["powerState"] == 'On'):
