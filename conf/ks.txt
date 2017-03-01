@@ -1,0 +1,76 @@
+#version=DEVEL
+# System authorization information
+auth --enableshadow --passalgo=sha512
+# Install OS instead of upgrade
+install
+# Use network installation
+url --url="http://10.3.88.10/centos"
+# Use graphical install
+graphical
+# Firewall configuration
+firewall --disable
+firstboot --disable
+ignoredisk --only-use=sda
+# Keyboard layouts
+# old format: keyboard us
+# new format:
+keyboard --vckeymap=us --xlayouts='us'
+# System language
+lang en_US.UTF-8
+
+# Network information
+network  --bootproto=dhcp --device=link --noipv6 --activate
+network  --hostname=localhost.localdomain
+# Reboot after installation
+reboot
+# Root password
+rootpw --plaintext linux1
+# SELinux configuration
+selinux --enforcing
+# System services
+services --enabled="chronyd"
+# System timezone
+timezone Europe/Paris --isUtc
+# System bootloader configuration
+bootloader --append="crashkernel=auto" --location=mbr --driveorder="sda" --boot-drive=sda
+autopart --type=lvm
+# Partition clearing information
+clearpart --all --initlabel --drives=sda
+
+%post
+cat > /etc/yum.repos.d/centos.repo << EOF
+[base]
+name=RHEL-$releasever - Base
+baseurl=http://labossi.labossi.hpintelco.org/mrepo/centos-7.2-x86_64/RPMS.os
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+EOF
+mkdir -p /root/.ssh && chmod 700 /root/.ssh
+cat > /root/.ssh/authorized_keys << EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDeChikTpgq+oG9keXAy7WeOZNBC0mxO1V5W8jGlH0iPk71CmDtgFpzoIfSAmhLxWkCj83mQ4kBuSP9aX1lV0PhnhWca4wqSbrdhA6Bs6Bm1RGhKkVCe/u1/nIy37lz+yefpHA/0HFf0Wr8dkeggkwQMRJoh/Uowa+5FLVSLKX/p1+a7xawq9Yp+yPu19SIN2cn361bO1SAsakE1SoMfFlav1uL89Zrep6xNYT136oeFtOd+UNKUGqMNJBYeEfQOHzSMSrKQCuWl88CuXXfeq1VPc/lt1Ef/YDybVpgDfmgMDq1yGX+/ALW5MamUpYAcrTEd7C9C/nBcmdDfU4Z//FJ ctb@uggla.no-ip.org
+EOF
+cat >>/root/.ssh/authorized_keys << EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC24cU/CDlwY8BEDIBakUoe1mO8scx7HRODZNfPoBD8sY/RlqZHdRVM40RTZfKk8GbNqoFECpaa1xEfCUtAEaP+ZBbu9fQef2ceoziRDA0WmAwFc1WKLN7HZ1tcUKL86eDxnArFbQUeQowJKJuYlPCf5lwKcpC3bc6uUlukzZiggAIck9of0kn77XzENrbbrcGVb9NuTA+0M5gXm4NL5HfhnKmIiye5FKXI7obvUdQg466jPYz735qnYAbev92Wiewn4sonApv0VWWtVlmE4sM5eV6PCULGoLhsUtT3vyXAjCEfXyTKLF/RqDt7N1p6qTnBpUVpcxg5cFPOhLUkNlJP itadmin@ansible
+EOF
+yum install -y yum-utils
+yum-config-manager --add-repo https://packages.docker.com/1.13/yum/repo/main/centos/7
+yum makecache fast
+yum install -y docker-engine --nogpg
+systemctl enable docker
+chmod +x /etc/rc.d/rc.local
+cat >>/etc/rc.d/rc/local << EOF
+curl -X POST 10.3.88.10:5000/deploy/os -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
+EOF
+curl -X POST 10.3.88.10:5000/deploy/complete -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
+%end
+
+%packages --nobase
+@core
+chrony
+kexec-tools
+
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
