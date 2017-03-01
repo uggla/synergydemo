@@ -105,8 +105,9 @@ def release(ws):
 @sockets.route('/deploy')
 def deploy(ws):
     data = json.loads(ws.receive())
-    server_hardware = oneview_client.server_hardware.get(data['uuid'])
-    macaddress = get_mac(server_hardware['serverProfileUri'])
+    server = oneview_client.server_hardware.get(data['uuid'])
+    profile = oneview_client.server_profiles.get(server['serverProfileUri'])
+    macaddress = get_mac(profile)
     flagpath = 'flags/' + macaddress
     if os.path.exists(flagpath):
         os.remove(flagpath)
@@ -298,6 +299,7 @@ def render_template(template, values=None):
 def define_status(server, profile):
     flag = None
     content = None
+    deployed = None
     osready = None
     status = ''
     macaddress = get_mac(profile)
@@ -308,11 +310,11 @@ def define_status(server, profile):
         with open(flagpath, 'r') as trace:
             content = trace.read()
             if 'deployed' in content:
-                content = True
+                deployed = True
             if 'osready' in content:
                 osready = True
 
-    if (server["powerState"] == 'On' and content is True):
+    if (server["powerState"] == 'On' and deployed is True):
         status = 'OS deployed, rebooting'
     if (server["powerState"] == 'On' and osready is True):
         status = 'System ready'
