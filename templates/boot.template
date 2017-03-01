@@ -1,6 +1,15 @@
 #!ipxe
+# Check of our system was already deployed
+{%- for sysmac in  r %}
+iseq ${mac} {{ sysmac }} goto exit
+{%- endfor %}
 
+# iPXE boot for Centos7
 kernel http://10.3.88.10/centos/images/pxeboot/vmlinuz
 initrd http://10.3.88.10/centos/images/pxeboot/initrd.img
 imgargs vmlinuz initrd=initrd.img ip=dhcp devfs=nomount inst.ks=http://10.3.88.10/centos/ks.txt
 boot
+
+# Boot on disk
+:exit
+exit

@@ -226,7 +226,9 @@ def send_img(path):
 
 @app.route('/boot')
 def boot():
-    script = render_template("boot.template")
+    macs = os.listdir("flags")
+    macs.remove('README.md')
+    script = render_template("boot.template", macs)
     return script
 
 
