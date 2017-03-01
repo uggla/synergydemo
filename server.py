@@ -316,7 +316,7 @@ def define_status(server, profile):
 
     if (server["powerState"] == 'On' and deployed is True):
         status = 'OS deployed, rebooting'
-    if (server["powerState"] == 'On' and osready is True):
+    elif (server["powerState"] == 'On' and osready is True):
         status = 'System ready'
     elif (server["powerState"] == 'On' and flag is True):
         status = 'Deployment in progress'
