@@ -1,20 +1,23 @@
 #!ipxe
 # List of system already deployed
+echo MAC:${mac:hexraw}
+echo Manuf:${manufacturer}
 {%- for sysmac in  r %}
-iseq "${mac}" "{{ sysmac }}" && goto exit
+iseq "${mac:hexraw}" "{{ sysmac }}" && goto exit ||
 {%- endfor %}
 
 # iPXE boot for Centos7
-kernel http://10.3.88.10/centos/images/pxeboot/vmlinuz
-initrd http://10.3.88.10/centos/images/pxeboot/initrd.img
-imgargs vmlinuz initrd=initrd.img ip=dhcp devfs=nomount inst.ks=http://10.3.88.10/centos/ks.txt
-boot
+echo "iPXE boot"
+chain --autofree http://10.3.88.10:5000/bootipxe/${max:hexraw}/${manufacturer:hexraw}
 
 # Boot on disk
 :exit
-iseq "${manufacturer}" "VMware,  Inc." && goto exitvmware
-exit
+echo "Disk boot"
+iseq  {{ r.manufacturer }} "VMware" && goto exitvmware ||
+shell
 
 # Boot on disk for vmware
 :exitvmware
+echo "Disk boot vmware"
 sanboot --no-describe --drive 0x80
+
