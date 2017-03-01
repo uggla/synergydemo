@@ -255,6 +255,7 @@ def deploy_complete():
 
     filename = "flags/" + macaddress
     with open(filename, 'w') as tracefile:
+        tracefile.write('deployed')
         tracefile.close()
         data = {"status": "ok"}
         resp = jsonify(data)
