@@ -1,7 +1,7 @@
 #!ipxe
-# Check of our system was already deployed
+# List of system already deployed
 {%- for sysmac in  r %}
-iseq ${mac} {{ sysmac }} goto exit
+iseq "${mac}" "{{ sysmac }}" goto exit
 {%- endfor %}
 
 # iPXE boot for Centos7
@@ -12,4 +12,9 @@ boot
 
 # Boot on disk
 :exit
+isaq "${manufacturer}" "VMware,  Inc." goto exitvmware
 exit
+
+# Boot on disk for vmware
+:exitvmware
+sanboot --no-describe --drive 0x80
