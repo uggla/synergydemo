@@ -5,6 +5,10 @@
 var server = 'localhost:5000';
 $( document ).ready(function() {
 	console.log( "Document ready !" );
+    {%- for server in  r %}
+    checkinput("{{ server['uuid'] }}");
+     {% endfor %}
+
     status();
 });
 
@@ -23,6 +27,7 @@ function reserve(uuid){
             notify(msg);
             $(reserveid).prop("disabled", true);
             $(releaseid).prop("disabled", false);
+            $(deployid).prop("disabled", false);
         }
 
         var data = {
@@ -51,8 +56,31 @@ function release(uuid){
             msg = msg.data + " released";
             notify(msg);
             $(reserveid).prop("disabled", true);
-            $(releaseid).prop("disabled", false);
+            $(releaseid).prop("disabled", true);
+            $(deployid).prop("disabled", true);
             $(owner).val('');
+        }
+
+        var data = {
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function deploy(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/deploy"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            console.log(msg.data)
         }
 
         var data = {
@@ -88,12 +116,15 @@ function checkinput(uuid){
     owner = '#' + uuid + '-owner';
     reserveid = '#' + uuid + '-reserve';
     releaseid = '#' + uuid + '-release';
+    deployid = '#' + uuid + '-deploy';
     if ($(owner).val() == ''){
         $(reserveid).prop("disabled", true);
-        $(releaseid).prop("disabled", false);
+        $(releaseid).prop("disabled", true);
+        $(deployid).prop("disabled", true);
     }else{
         $(reserveid).prop("disabled", false);
         $(releaseid).prop("disabled", true);
+        $(deployid).prop("disabled", true);
     }
 }
 

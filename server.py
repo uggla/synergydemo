@@ -123,50 +123,6 @@ def status(ws):
         time.sleep(5)
 
 
-def define_status(server, profile):
-    flag = None
-    content = None
-    status = ''
-    macaddress = get_mac(profile)
-    flagpath = 'flags/' + macaddress
-    if os.path.exists(flagpath):
-        flag = True
-        # Checking inside flag
-        with open(flagpath, 'r') as trace:
-            content = trace.read()
-            if 'deployed' in content:
-                content = True
-
-    if (server["powerState"] == 'On' and content is True):
-        status = 'Deployed'
-    elif (server["powerState"] == 'On' and flag is True):
-        status = 'Deployment in progress'
-    elif (server["powerState"] == 'On'):
-        status = 'PowerOn'
-    elif (server["powerState"] == 'Off'):
-        status = 'PowerOff'
-    data = {"uuid": server["uuid"],
-            "status": status,
-            "timestamp": datetime.datetime.now().isoformat()}
-    return data
-
-
-def get_mac(profile):
-    macaddress = profile['connections'][0]['mac'].lower()
-    macaddress = macaddress.replace(':', '')
-    return macaddress
-
-
-@sockets.route('/bla')
-def bla_socket(ws):
-    while not ws.closed:
-        message = ws.receive()
-        ws.send(message + 'blabla')
-        for i in range(5):
-            time.sleep(1)
-            ws.send(message + 'blabla')
-
-
 @app.route('/')
 @app.route('/available')
 def available():
@@ -272,6 +228,40 @@ def render_template(template, values=None):
         data = template.render(r=values)
 
     return data
+
+
+def define_status(server, profile):
+    flag = None
+    content = None
+    status = ''
+    macaddress = get_mac(profile)
+    flagpath = 'flags/' + macaddress
+    if os.path.exists(flagpath):
+        flag = True
+        # Checking inside flag
+        with open(flagpath, 'r') as trace:
+            content = trace.read()
+            if 'deployed' in content:
+                content = True
+
+    if (server["powerState"] == 'On' and content is True):
+        status = 'Deployed'
+    elif (server["powerState"] == 'On' and flag is True):
+        status = 'Deployment in progress'
+    elif (server["powerState"] == 'On'):
+        status = 'PowerOn'
+    elif (server["powerState"] == 'Off'):
+        status = 'PowerOff'
+    data = {"uuid": server["uuid"],
+            "status": status,
+            "timestamp": datetime.datetime.now().isoformat()}
+    return data
+
+
+def get_mac(profile):
+    macaddress = profile['connections'][0]['mac'].lower()
+    macaddress = macaddress.replace(':', '')
+    return macaddress
 
 
 if __name__ == "__main__":
