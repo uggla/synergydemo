@@ -105,7 +105,8 @@ def release(ws):
 @sockets.route('/deploy')
 def deploy(ws):
     data = json.loads(ws.receive())
-    macaddress = get_mac(data["uuid"])
+    server_hardware = oneview_client.server_hardware.get(data['uuid'])
+    macaddress = get_mac(server_hardware['serverProfileUri'])
     flagpath = 'flags/' + macaddress
     if os.path.exists(flagpath):
         os.remove(flagpath)
