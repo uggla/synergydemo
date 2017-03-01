@@ -8,16 +8,16 @@ iseq "${mac:hexraw}" "{{ sysmac }}" && goto exit ||
 
 # iPXE boot for Centos7
 echo "iPXE boot"
-chain --autofree http://10.3.88.10:5000/bootipxe/${max:hexraw}/${manufacturer:hexraw}
+chain --autofree http://10.3.88.10:5000/bootipxe/${mac:hexraw}/${manufacturer:hexraw}
 
 # Boot on disk
 :exit
 echo "Disk boot"
-iseq  {{ r.manufacturer }} "VMware" && goto exitvmware ||
-shell
+# Check if the manufactuerer is VMware
+iseq  ${manufacturer:hexraw} 564d776172652c20496e632e && goto exitvmware ||
+exit
 
 # Boot on disk for vmware
 :exitvmware
 echo "Disk boot vmware"
 sanboot --no-describe --drive 0x80
-
