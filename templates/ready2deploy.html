@@ -185,7 +185,7 @@ function checkinput(uuid){
           <button id="{{ server["uuid"] }}-release" type="button" class="btn btn-warning btn-lg btn-block" onClick="release('{{ server["uuid"] }}')">
           <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Release
           </button>
-          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-primary btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
+          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-danger btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
           </td>
         </tr>
      {% endfor %}

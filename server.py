@@ -105,8 +105,45 @@ def release(ws):
 @sockets.route('/deploy')
 def deploy(ws):
     data = json.loads(ws.receive())
-    resa.release(data["uuid"])
-    ws.send(data["uuid"])
+
+    # Power off server
+    try:
+        configuration = {
+            "powerState": "Off",
+            "powerControl": "MomentaryPress"
+        }
+        server_power = oneview_client.server_hardware.update_power_state(
+                configuration,
+                data["uuid"])
+    except HPOneViewException as e:
+        print(e.msg)
+
+## Refresh server state
+#    try:
+#        configuration = {
+#            "refreshState": "RefreshPending"
+#        }
+#        server_refresh = oneview_client.server_hardware.refresh_state(configuration, server_hardware_id)
+#        print("Successfully refreshed the state of the server at:\n   'uri': '{}'".format(
+#            server_refresh['uri']))
+#except HPOneViewException as e:
+#    print(e.msg)
+    msg = data["uuid"] + "requested to stop."
+    ws.send(msg)
+    time.sleep(10)
+    # Power off server
+    try:
+        configuration = {
+            "powerState": "On",
+            "powerControl": "MomentaryPress"
+        }
+        server_power = oneview_client.server_hardware.update_power_state(
+                configuration,
+                data["uuid"])
+    except HPOneViewException as e:
+        print(e.msg)
+    msg = data["uuid"] + "powered on."
+    ws.send(msg)
 
 
 @sockets.route('/status')
