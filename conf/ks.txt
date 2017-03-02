@@ -58,10 +58,10 @@ yum makecache fast
 yum install -y docker-engine --nogpg
 systemctl enable docker
 chmod +x /etc/rc.d/rc.local
-cat >>/etc/rc.d/rc/local << EOF
-curl -X POST 10.3.88.10:5000/deploy/os -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
+cat >>/etc/rc.d/rc.local << EOF
+curl -X POST 10.3.88.10:5000/deploy/os -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3.88 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
 EOF
-curl -X POST 10.3.88.10:5000/deploy/complete -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
+curl -X POST 10.3.88.10:5000/deploy/complete -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3.88 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
 %end
 
 %packages --nobase
