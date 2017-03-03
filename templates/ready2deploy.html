@@ -49,6 +49,7 @@ function release(uuid){
         owner = '#' + uuid + '-owner';
         reserveid = '#' + uuid + '-reserve';
         releaseid = '#' + uuid + '-release';
+        deployid = '#' + uuid + '-deploy';
 
         ws = new WebSocket(url);
 
@@ -76,6 +77,7 @@ function release(uuid){
 function deploy(uuid){
     if ("WebSocket" in window) {
         url = "ws://" + server + "/deploy"
+        deployid = '#' + uuid + '-deploy';
 
         ws = new WebSocket(url);
 
@@ -88,7 +90,11 @@ function deploy(uuid){
         };
         console.log(data)
         // Send the msg object as a JSON-formatted string.
-        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+        ws.onopen = function (event) {
+            // Disable deploy button to avoid multiple request on double click
+            $(deployid).prop("disabled", true);
+            ws.send(JSON.stringify(data))
+        };
     } else {
         alert("WebSocket not supported");
     }
@@ -112,6 +118,7 @@ function status(){
     }
 }
 
+
 function checkinput(uuid){
     owner = '#' + uuid + '-owner';
     reserveid = '#' + uuid + '-reserve';
@@ -122,11 +129,18 @@ function checkinput(uuid){
         $(releaseid).prop("disabled", true);
         $(deployid).prop("disabled", true);
     }else{
-        $(reserveid).prop("disabled", false);
-        $(releaseid).prop("disabled", true);
-        $(deployid).prop("disabled", true);
+        $(reserveid).prop("disabled", true);
+        $(releaseid).prop("disabled", false);
+        $(deployid).prop("disabled", false);
     }
 }
+
+
+function allowreserve(uuid){
+    owner = '#' + uuid + '-owner';
+    reserveid = '#' + uuid + '-reserve';
+    $(reserveid).prop("disabled", false);
+    }
 
 </script>
 {% endblock %}
@@ -174,7 +188,7 @@ function checkinput(uuid){
           <td class="text-left">
               <div id="{{ server["uuid"] }}-status"></div>
           </td>
-          <td class="text-left"><input type="text" id="{{ server["uuid"] }}-owner" value="{{ server.owner }}" onkeyup="checkinput('{{ server["uuid"] }}')"><br><br>
+          <td class="text-left"><input type="text" id="{{ server["uuid"] }}-owner" value="{{ server.owner }}" onkeyup="allowreserve('{{ server["uuid"] }}')"><br><br>
           <!--
           <button id="reserve" type="button" class="btn btn-primary" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
           <button id="reserve" type="button" class="btn btn-primary" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
@@ -185,7 +199,9 @@ function checkinput(uuid){
           <button id="{{ server["uuid"] }}-release" type="button" class="btn btn-warning btn-lg btn-block" onClick="release('{{ server["uuid"] }}')">
           <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Release
           </button>
-          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-danger btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
+          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-danger btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-play-circle" aria-hidden="true"></span> Deploy
+          </button>
           </td>
         </tr>
      {% endfor %}
