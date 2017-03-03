@@ -157,8 +157,6 @@ function allowreserve(uuid){
 {% block content %}
     <h1>Ready to deploy servers</h1>
     <p class="text-left lead">This is the list of servers that can be reserved and deployed by your team.</p>
-    <div id="usermsg">
-    </div>
     <div class="table-responsive">
     <table class="table">
     <thead>
@@ -207,4 +205,9 @@ function allowreserve(uuid){
      {% endfor %}
     </table>
     </div>
+    <nav class="navbar navbar-default navbar-fixed-bottom">
+        <div class="container">
+            <div id="usermsg"></div>
+        </div>
+    </nav>
 {% endblock %}
