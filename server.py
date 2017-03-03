@@ -141,6 +141,14 @@ def deploy(ws):
     ws.send(msg)
 
 
+@sockets.route('/console')
+def console(ws):
+    data = json.loads(ws.receive())
+    remote_console_url = oneview_client.server_hardware.get_java_remote_console_url(data["uuid"])
+    msg = remote_console_url
+    ws.send(msg["javaRemoteConsoleUrl"])
+
+
 @sockets.route('/status')
 def status(ws):
     while not ws.closed:

@@ -101,6 +101,29 @@ function deploy(uuid){
 }
 
 
+function openconsole(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/console"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            console.log(msg.data)
+            window.open(msg.data)
+        }
+
+        var data = {
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
 function status(){
     if ("WebSocket" in window) {
         url = "ws://" + server + "/status"
@@ -199,6 +222,9 @@ function allowreserve(uuid){
           </button>
           <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-danger btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">
           <span class="glyphicon glyphicon-play-circle" aria-hidden="true"></span> Deploy
+          </button>
+          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-primary btn-lg btn-block" onClick="openconsole('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Console
           </button>
           </td>
         </tr>
