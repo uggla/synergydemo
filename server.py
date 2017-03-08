@@ -238,9 +238,12 @@ def boot():
 @app.route('/bootipxe/<macaddress>/<manufacturer>')
 def bootipxe(macaddress, manufacturer):
     # Write a trace file
-    return write_tracefile(macaddress, {"manufacturer": manufacturer,
-                                        "status": "bootipxe",
-                                        "macaddress": macaddress})
+    write_tracefile(macaddress, {"manufacturer": manufacturer,
+                                 "status": "bootipxe",
+                                 "macaddress": macaddress})
+
+    script = render_template("bootipxe.template")
+    return script
 
 
 @app.route('/deploy/complete', methods=["POST"])
