@@ -134,6 +134,14 @@ function status(){
             var data = JSON.parse(msg.data);
             console.log(data);
             status = '#' + data.uuid + '-status';
+            if (data.status == 'OS deployed, rebooting'){
+                data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + data.status;
+            }else if (data.status == 'Deployment in progress'){
+                data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + data.status;
+            }else if (data.status == 'System ready'){
+                data.status = data.status + ' at ' + data.ipaddress;
+            }
+            // Show message
             $(status).html(data.status);
         }
     } else {

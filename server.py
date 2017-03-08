@@ -238,13 +238,9 @@ def boot():
 @app.route('/bootipxe/<macaddress>/<manufacturer>')
 def bootipxe(macaddress, manufacturer):
     # Write a trace file
-
-    filename = "flags/" + macaddress
-    with open(filename, 'w') as tracefile:
-        tracefile.write(manufacturer)
-        tracefile.close()
-    script = render_template("bootipxe.template")
-    return script
+    return write_tracefile(macaddress, {"manufacturer": manufacturer,
+                                        "status": "bootipxe",
+                                        "macaddress": macaddress})
 
 
 @app.route('/deploy/complete', methods=["POST"])
@@ -256,14 +252,7 @@ def deploy_complete():
         raise InvalidUsage(
                 'Invalid key provided should be macaddress', status_code=400)
 
-    filename = "flags/" + macaddress
-    with open(filename, 'w') as tracefile:
-        tracefile.write('deployed')
-        tracefile.close()
-        data = {"status": "ok"}
-        resp = jsonify(data)
-        resp.status_code = 200
-        return resp
+    return write_tracefile(macaddress, {"status": "deployed"})
 
 
 @app.route('/deploy/os', methods=["POST"])
@@ -271,18 +260,14 @@ def deploy_osready():
     # Write a trace file
     try:
         macaddress = request.json['macaddress']
+        ipaddress = request.json['ipaddress']
     except KeyError:
         raise InvalidUsage(
-                'Invalid key provided should be macaddress', status_code=400)
+                'Invalid key provided should be macaddress and ipaddress',
+                status_code=400)
 
-    filename = "flags/" + macaddress
-    with open(filename, 'w') as tracefile:
-        tracefile.write('osready')
-        tracefile.close()
-        data = {"status": "ok"}
-        resp = jsonify(data)
-        resp.status_code = 200
-        return resp
+    return write_tracefile(macaddress, {"status": "osready",
+                                        "ipaddress": ipaddress})
 
 
 def render_template(template, values=None):
@@ -304,36 +289,61 @@ def render_template(template, values=None):
     return data
 
 
-def define_status(server, profile):
-    flag = None
-    content = None
-    deployed = None
-    osready = None
-    status = ''
-    macaddress = get_mac(profile)
-    flagpath = 'flags/' + macaddress
-    if os.path.exists(flagpath):
-        flag = True
-        # Checking inside flag
-        with open(flagpath, 'r') as trace:
-            content = trace.read()
-            if 'deployed' in content:
-                deployed = True
-            if 'osready' in content:
-                osready = True
+def write_tracefile(macaddress, newdata):
+    data = {}
+    if not macaddress:
+        raise ValueError("macaddress parameter can not be empty.")
+    filename = "flags/" + macaddress
+    if os.path.exists(filename):
+        data = read_tracefile(macaddress)
+    # Update data
+    data.update(newdata)
+    with open(filename, 'w') as tracefile:
+        json.dump(data, tracefile)
+        tracefile.close()
+        data = {"status": "ok"}
+        resp = jsonify(data)
+        resp.status_code = 200
+        return resp
 
-    if (server["powerState"] == 'On' and deployed is True):
+
+def read_tracefile(macaddress):
+    filename = "flags/" + macaddress
+    with open(filename, 'r') as tracefile:
+        data = json.load(tracefile)
+        return data
+
+
+def define_status(server, profile):
+    data = {}
+    data["status"] = ''
+    data["ipaddress"] = ''
+    data["manufacturer"] = ''
+    status = ''
+    ipaddress = ''
+    manufacturer = ''
+    macaddress = get_mac(profile)
+    filename = "flags/" + macaddress
+    if os.path.exists(filename):
+        data = read_tracefile(macaddress)
+
+    if (server["powerState"] == 'On' and data["status"] == "deployed"):
         status = 'OS deployed, rebooting'
-    elif (server["powerState"] == 'On' and osready is True):
+    elif (server["powerState"] == 'On' and data["status"] == "osready"):
         status = 'System ready'
-    elif (server["powerState"] == 'On' and flag is True):
+        ipaddress = data["ipaddress"]
+    elif (server["powerState"] == 'On' and data["status"] == "bootipxe"):
         status = 'Deployment in progress'
+        manufacturer = data["manufacturer"]
     elif (server["powerState"] == 'On'):
         status = 'PowerOn'
     elif (server["powerState"] == 'Off'):
         status = 'PowerOff'
     data = {"uuid": server["uuid"],
             "status": status,
+            "macaddress": macaddress,
+            "ipaddress": ipaddress,
+            "manufacturer": manufacturer,
             "timestamp": datetime.datetime.now().isoformat()}
     return data
 
