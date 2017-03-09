@@ -180,8 +180,8 @@ function allowreserve(uuid){
 {% block navmenu %}
 <!-- Menu -->
 <li><a href="/available">Available servers</a></li>
-<li class="active"><a href="/ready2deploy">Servers ready to deploy</a></li>
-<li><a href="/deployed">Deployed server</a></li>
+<li class="active"><a href="/ready2deploy">Reserve and deploy</a></li>
+<li><a href="/use">Use servers</a></li>
 {% endblock %}
 
 
@@ -231,7 +231,7 @@ function allowreserve(uuid){
           <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-danger btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">
           <span class="glyphicon glyphicon-play-circle" aria-hidden="true"></span> Deploy
           </button>
-          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-primary btn-lg btn-block" onClick="openconsole('{{ server["uuid"] }}')">
+          <button id="{{ server["uuid"] }}-console" type="button" class="btn btn-primary btn-lg btn-block" onClick="openconsole('{{ server["uuid"] }}')">
           <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Console
           </button>
           </td>

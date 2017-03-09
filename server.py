@@ -197,11 +197,34 @@ def ready2deploy():
     return html
 
 
-@app.route('/deployed')
+@app.route('/use')
 def deployed():
     # Get hardware
     server_hardware_all = oneview_client.server_hardware.get_all()
-    html = render_template("deployed.html", server_hardware_all)
+    # Craft required data
+    data2print = []
+    for server in server_hardware_all:
+        if server['serverProfileUri'] is not None:
+            profile = oneview_client.server_profiles.get(
+                    server['serverProfileUri'])
+            if 'iPXE' in profile["name"]:
+                macaddress = get_mac(profile)
+                filename = "flags/" + macaddress
+                if os.path.exists(filename):
+                    data = read_tracefile(macaddress)
+                else:
+                    data["ipaddress"] = ''
+
+                data2print.append({
+                    'shortModel': server['shortModel'],
+                    'name': server['name'],
+                    'uuid': server['uuid'],
+                    'macaddress': macaddress,
+                    'powerState': server['powerState'],
+                    'owner': resa.get(server['uuid']),
+                    'ipaddress': data["ipaddress"]
+                    })
+    html = render_template("deployed.html", data2print)
     return html
 
 

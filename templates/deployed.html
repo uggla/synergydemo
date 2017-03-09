@@ -2,19 +2,45 @@
 
 {% block scripts %}
 <script>
+var server = 'ansible.hybridit.hpecic.net:5000';
 $( document ).ready(function() {
 	console.log( "Document ready !" );
+
+    status();
 });
 
-function apply(pid){
-    window.location = "applyprofile";
+
+function portainer(ipaddress){
+	url = 'http://' + ipaddress + ':9000'
+    console.log(url)
+    window.open(url)
 }
 
-function remove(pid){
-    var url = "removeprofile/" + pid;
-    window.location = url;
-}
 
+function status(){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/status"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            var data = JSON.parse(msg.data);
+            console.log(data);
+            status = '#' + data.uuid + '-status';
+            if (data.status == 'OS deployed, rebooting'){
+                data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + data.status;
+            }else if (data.status == 'Deployment in progress'){
+                data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + data.status;
+            }else if (data.status == 'System ready'){
+                data.status = data.ipaddress;
+            }
+            // Show message
+            $(status).html(data.status);
+        }
+    } else {
+        alert("WebSocket not supported");
+    }
+}
 </script>
 {% endblock %}
 
@@ -22,29 +48,28 @@ function remove(pid){
 {% block navmenu %}
 <!-- Menu -->
 <li><a href="/available">Available servers</a></li>
-<li><a href="/ready2deploy">Servers ready to deploy</a></li>
-<li class="active"><a href="/deployed">Deployed servers</a></li>
+<li><a href="/ready2deploy">Reserve and deploy</a></li>
+<li><a class="active" href="/use">Use servers</a></li>
 {% endblock %}
 
 
 {% block content %}
-    <h1>Deployed servers</h1>
-    <p class="text-left lead">This is the list of servers deployed that you can import into your docker-machine</p>
-
+    <h1>Use servers</h1>
+    <p class="text-left lead">Connect to use your server docker engine.</p>
+    <p class="text-left lead">Credentials login: 'admin' password: 'ITAdmin1234'.</p>
     <div class="table-responsive">
     <table class="table">
     <thead>
     <tr>
       <th>Server image</th>
       <th>Server type</th>
-      <th>Name and location</th>
-      <th>uuid</th>
-      <th>Apply</th>
-      <th>Remove</th>
+      <th>Name / Location</th>
+      <th>IP@</th>
+      <th>Actions</th>
     </tr>
     </thead>
     {%- for server in  r %}
-        {%- if  not server["serverProfileUri"] %}
+        {%- if not server["ipaddress"]=='' %}
         <tr>
           {%- if  server["shortModel"]=="SY 480 Gen9" %}
           <td class="text-left"><img src="/img/sy480.png" class="img-responsive" alt="sy480"></td>
@@ -57,12 +82,23 @@ function remove(pid){
           {%- endif %}
           <td class="text-left">{{ server["shortModel"] }}</td>
           <td class="text-left">{{ server["name"] }}</td>
-          <td class="text-left">{{ server["uuid"] }}</td>
-          <td class="text-left"><button id="apply" type="button" class="btn btn-primary" onClick="apply('{{ server["uuid"] }}')">Apply</button></td>
-          <td class="text-left"><button id="remove" type="button" class="btn btn-danger" onClick="remove('{{ server["uuid"] }}')">Remove</button></td>
+          <td class="text-left">
+              <div id="{{ server["uuid"] }}-status"></div>
+          </td>
+          <td class="text-left">
+          <button id="{{ server["uuid"] }}-portainer" type="button" class="btn btn-primary btn-lg btn-block" onClick="portainer('{{ server["ipaddress"] }}')">
+          <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Connect portainer
+          </button>
+          </td>
         </tr>
         {%- endif %}
+
      {% endfor %}
     </table>
     </div>
+    <nav class="navbar navbar-default navbar-fixed-bottom">
+        <div class="container">
+            <div id="usermsg"></div>
+        </div>
+    </nav>
 {% endblock %}
