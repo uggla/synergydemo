@@ -201,6 +201,7 @@ def status(ws):
 @app.route('/')
 @app.route('/available')
 def available():
+    global config
     # Get hardware
     server_hardware_all = oneview_client.server_hardware.get_all()
     # Get templates
@@ -234,12 +235,13 @@ def available():
             'owner': resa.get(server['uuid']),
             'applicable_profile': applicable_profile
             })
-    html = render_template("available.html", data2print)
+    html = render_template("available.html", data2print, config["ip"])
     return html
 
 
 @app.route('/ready2deploy')
 def ready2deploy():
+    global config
     # Get hardware
     server_hardware_all = oneview_client.server_hardware.get_all()
 
@@ -259,12 +261,13 @@ def ready2deploy():
                     'powerState': server['powerState'],
                     'owner': resa.get(server['uuid'])
                     })
-    html = render_template("ready2deploy.html", data2print)
+    html = render_template("ready2deploy.html", data2print, config["ip"])
     return html
 
 
 @app.route('/use')
 def deployed():
+    global config
     # Get hardware
     server_hardware_all = oneview_client.server_hardware.get_all()
     # Craft required data
@@ -295,7 +298,7 @@ def deployed():
                     'owner': resa.get(server['uuid']),
                     'ipaddress': data["ipaddress"]
                     })
-    html = render_template("deployed.html", data2print)
+    html = render_template("deployed.html", data2print, config["ip"])
     return html
 
 
@@ -367,7 +370,7 @@ def deploy_osready():
                                         "ipaddress": ipaddress})
 
 
-def render_template(template, values=None):
+def render_template(template, values=None, config=None):
     # Initialize Template system (jinja2)
     templates_path = 'templates'
     jinja2_env = jinja2.Environment(
@@ -381,7 +384,7 @@ def render_template(template, values=None):
     if values is None:
         data = template.render()
     else:
-        data = template.render(r=values)
+        data = template.render(r=values, config=config)
 
     return data
 
