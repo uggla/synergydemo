@@ -279,6 +279,10 @@ def deployed():
                 filename = "flags/" + macaddress
                 if os.path.exists(filename):
                     data = read_tracefile(macaddress)
+                    try:
+                        data["ipaddress"]
+                    except KeyError:
+                        data["ipaddress"] = ''
                 else:
                     data["ipaddress"] = ''
 
