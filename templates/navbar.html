@@ -43,6 +43,7 @@
               <ul class="dropdown-menu">
                 <li><a href="/config/10.3.87.10">10.3.87.10</a></li>
                 <li><a href="/config/10.3.87.110">10.3.87.110</a></li>
+                <li><a href="/config/10.6.25.10">10.6.25.10</a></li>
               </ul>
             </li>
             {% block navmenu %}
@@ -68,6 +69,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
     <script>
+    var server = 'ansible.hybridit.hpecic.net:5000';
     function notify(msg){
         alertmsg = '<div class="alert alert-success" role="alert">' + msg + '</div>';
         $("#usermsg").html(alertmsg);

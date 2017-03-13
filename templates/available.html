@@ -6,17 +6,38 @@ $( document ).ready(function() {
 	console.log( "Document ready !" );
 });
 
-function notify(pid){
-    msg = "Infrastructure team notified !\n Server uuid: "+ pid + " will be installed for you"
-    alert(msg)
+function notifyinfra(uuid){
+    msg = "Infrastructure team notified !\n Server uuid: "+ uuid + " will be reserved for you";
+    alert(msg);
+    addprofileid = '#' + uuid + '-addprofile';
+    $(addprofileid).prop("disabled", false);
 }
 
-/*
-function remove(pid){
-    var url = "removeprofile/" + pid;
-    window.location = url;
+function addprofile(uuid, type){
+    addprofileid = '#' + uuid + '-addprofile';
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/addprofile"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            msg = msg.data;
+            notify(msg);
+        }
+
+        var data = {
+            type: type,
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+        $(addprofileid).prop("disabled", true);
+    } else {
+        alert("WebSocket not supported");
+    }
 }
-*/
+
 </script>
 {% endblock %}
 
@@ -40,7 +61,8 @@ function remove(pid){
       <th>Server image</th>
       <th>Server type</th>
       <th>Name and location</th>
-      <th>uuid</th>
+      <th>Uuid</th>
+      <th>Powerstate</th>
       <th>Action</th>
     </tr>
     </thead>
@@ -59,10 +81,23 @@ function remove(pid){
           <td class="text-left">{{ server["shortModel"] }}</td>
           <td class="text-left">{{ server["name"] }}</td>
           <td class="text-left">{{ server["uuid"] }}</td>
-          <td class="text-left"><button id="apply" type="button" class="btn btn-primary" onClick="notify('{{ server["uuid"] }}')">Notify</button></td>
+          <td class="text-left">{{ server["powerState"] }}</td>
+          <td class="text-left"><button id="{{ server["uuid"] }}-notifyinfra" type="button" class="btn btn-primary" onClick="notifyinfra('{{ server["uuid"] }}')">Notify</button>
+          </td>
+          <td class="text-left">
+              {% if server["applicable_profile"] != "None" %}
+              <button id="{{ server["uuid"] }}-addprofile" type="button" class="btn btn-primary" onClick="addprofile('{{ server["uuid"] }}', '{{ server["applicable_profile"] }}')" disabled="disabled">Add profile</button>
+              {%- endif %}
+          </td>
+
         </tr>
         {%- endif %}
      {% endfor %}
     </table>
     </div>
+    <nav class="navbar navbar-default navbar-fixed-bottom">
+        <div class="container">
+            <div id="usermsg"></div>
+        </div>
+    </nav>
 {% endblock %}
