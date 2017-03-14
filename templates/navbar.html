@@ -49,7 +49,10 @@
             {% block navmenu %}
             {% endblock %}
           </ul>
-          <p class="navbar-text navbar-right">Connected to frame: {{ config }}</p>
+          <p class="navbar-text navbar-right">Connected to frame: 
+          <a href="http://{{ config }}" target="_blank">{{ config }}</a>
+          </p>
+
         </div><!--/.nav-collapse -->
       </div>
     </nav>
