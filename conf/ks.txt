@@ -63,6 +63,8 @@ yum makecache fast
 yum install -y docker-engine --nogpg
 systemctl enable docker
 chmod +x /etc/rc.d/rc.local
+# Update docker systemd configuration file to listen on tcp and unix socket
+sed -i 's#^ExecStart.*#ExecStart=/usr/bin/dockerd -H 0.0.0.0:4243 -H unix:///var/run/docker.sock#' /usr/lib/systemd/system/docker.service
 
 # Manage rc.local to send os ready trace and install a couple of docker container
 # Send trace OS ready
@@ -80,6 +82,11 @@ cd /data && curl http://10.3.88.10/portainer.db >/data/portainer.db
 chmod 600 /data/portainer.db
 # Run portainer
 docker run -d -p 9000:9000 --privileged -v /var/run/docker.sock:/var/run/docker.sock -v /data:/data portainer/portainer
+# Get magento image
+docker pull alankent/gsd
+# Install docker compose
+curl -L "https://github.com/docker/compose/releases/download/1.11.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
 EOF
 
 # Send trace OS installed and reboot in progress
