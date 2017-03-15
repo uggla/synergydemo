@@ -7,3 +7,4 @@ flask_sockets
 hpOneView
 Jinja2
 gunicorn
+docker
