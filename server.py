@@ -56,6 +56,7 @@ class Reservation(object):
         except KeyError:
             pass
 
+
 app = Flask(__name__)
 sockets = Sockets(app)
 
@@ -95,7 +96,8 @@ def addprofile(ws):
     data = json.loads(ws.receive())
     server = oneview_client.server_hardware.get(data['uuid'])
     templatename = 'Boot iPXE SY' + data['type']
-    template = oneview_client.server_profile_templates.get_by_name(templatename)
+    template = oneview_client.server_profile_templates.get_by_name(
+        templatename)
     # Power off server
     ws.send(data["uuid"] + ' sending power off.')
     try:
@@ -103,21 +105,22 @@ def addprofile(ws):
             "powerState": "Off",
             "powerControl": "MomentaryPress"
         }
-        server_power = oneview_client.server_hardware.update_power_state(
-                configuration,
-                data["uuid"])
+        oneview_client.server_hardware.update_power_state(
+            configuration,
+            data["uuid"])
     except HPOneViewException as e:
         print(e.msg)
 
     # Get new profile
-    profile = oneview_client.server_profile_templates.get_new_profile(template['uri'])
+    profile = oneview_client.server_profile_templates.get_new_profile(
+        template['uri'])
 
     name = 'iPXE-' + str(uuid.uuid4()).split('-')[-1]
     profile['name'] = name
     profile['serverHardwareUri'] = server['uri']
     try:
         # Create a server profile
-        basic_profile = oneview_client.server_profiles.create(profile, 10)
+        oneview_client.server_profiles.create(profile, 10)
     except HPOneViewException as e:
         print(e.msg)
 
@@ -153,9 +156,9 @@ def deploy(ws):
             "powerState": "Off",
             "powerControl": "MomentaryPress"
         }
-        server_power = oneview_client.server_hardware.update_power_state(
-                configuration,
-                data["uuid"])
+        oneview_client.server_hardware.update_power_state(
+            configuration,
+            data["uuid"])
     except HPOneViewException as e:
         print(e.msg)
 
@@ -168,9 +171,9 @@ def deploy(ws):
             "powerState": "On",
             "powerControl": "MomentaryPress"
         }
-        server_power = oneview_client.server_hardware.update_power_state(
-                configuration,
-                data["uuid"])
+        oneview_client.server_hardware.update_power_state(
+            configuration,
+            data["uuid"])
     except HPOneViewException as e:
         print(e.msg)
     msg = data["uuid"] + "powered on."
@@ -180,7 +183,9 @@ def deploy(ws):
 @sockets.route('/console')
 def console(ws):
     data = json.loads(ws.receive())
-    remote_console_url = oneview_client.server_hardware.get_java_remote_console_url(data["uuid"])
+    remote_console_url = \
+        oneview_client.server_hardware.get_java_remote_console_url(
+            data["uuid"])
     msg = remote_console_url
     ws.send(msg["javaRemoteConsoleUrl"])
 
@@ -192,7 +197,7 @@ def status(ws):
         for server in server_hardware_all:
             if server['serverProfileUri'] is not None:
                 profile = oneview_client.server_profiles.get(
-                        server['serverProfileUri'])
+                    server['serverProfileUri'])
                 if 'iPXE' in profile["name"]:
                     data = define_status(server, profile)
                     ws.send(json.dumps(data))
@@ -206,13 +211,18 @@ def available():
     # Get hardware
     server_hardware_all = oneview_client.server_hardware.get_all()
     # Get templates
-    templates = [oneview_client.server_profile_templates.get_by_name('Boot iPXE SY480'), oneview_client.server_profile_templates.get_by_name('Boot iPXE SY620')]
+    templates = [
+        oneview_client.server_profile_templates.get_by_name('Boot iPXE SY480'),
+        oneview_client.server_profile_templates.get_by_name('Boot iPXE SY620')]
     # Craft required data
     data2print = []
     for server in server_hardware_all:
         applicable_profile = 'None'
         try:
-            available480s = oneview_client.server_profiles.get_available_servers(serverHardwareTypeUri=templates[0]['serverHardwareTypeUri'])
+            available480s = \
+                oneview_client.server_profiles.get_available_servers(
+                    serverHardwareTypeUri=templates[0]
+                                                   ['serverHardwareTypeUri'])
             for srv in available480s:
                 if server['uri'] == srv['serverHardwareUri']:
                     applicable_profile = '480'
@@ -220,7 +230,10 @@ def available():
             pass
 
         try:
-            available620s = oneview_client.server_profiles.get_available_servers(serverHardwareTypeUri=templates[1]['serverHardwareTypeUri'])
+            available620s = \
+                oneview_client.server_profiles.get_available_servers(
+                    serverHardwareTypeUri=templates[1]
+                                                   ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
                     applicable_profile = '620'
@@ -251,7 +264,7 @@ def ready2deploy():
     for server in server_hardware_all:
         if server['serverProfileUri'] is not None:
             profile = oneview_client.server_profiles.get(
-                    server['serverProfileUri'])
+                server['serverProfileUri'])
             if 'iPXE' in profile["name"]:
                 macaddress = get_mac(profile)
                 data2print.append({
@@ -277,7 +290,7 @@ def deployed():
         data = {}
         if server['serverProfileUri'] is not None:
             profile = oneview_client.server_profiles.get(
-                    server['serverProfileUri'])
+                server['serverProfileUri'])
             if 'iPXE' in profile["name"]:
                 macaddress = get_mac(profile)
                 filename = "flags/" + macaddress
@@ -351,7 +364,7 @@ def deploy_complete():
         macaddress = request.json['macaddress']
     except KeyError:
         raise InvalidUsage(
-                'Invalid key provided should be macaddress', status_code=400)
+            'Invalid key provided should be macaddress', status_code=400)
 
     return write_tracefile(macaddress, {"status": "deployed"})
 
@@ -364,9 +377,8 @@ def deploy_osready():
         ipaddress = request.json['ipaddress']
     except KeyError:
         raise InvalidUsage(
-                'Invalid key provided should be macaddress and ipaddress',
-                status_code=400)
-
+            'Invalid key provided should be macaddress and ipaddress',
+            status_code=400)
     return write_tracefile(macaddress, {"status": "osready",
                                         "ipaddress": ipaddress})
 
