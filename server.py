@@ -69,7 +69,7 @@ except KeyError:
 
 
 config = {
-    "ip": "10.3.87.10",
+    "ip": "10.6.25.10",
     "credentials": {
         "userName": login,
         "password": password
@@ -252,6 +252,44 @@ def available():
     html = render_template("available.html", data2print, config["ip"])
     return html
 
+@app.route('/availablexml')
+def availablexml():
+    global config
+    # Get hardware
+    server_hardware_all = oneview_client.server_hardware.get_all()
+    # Get templates
+    templates = [oneview_client.server_profile_templates.get_by_name('Boot iPXE SY480'), oneview_client.server_profile_templates.get_by_name('Boot iPXE SY620')]
+    # Craft required data
+    data2print = []
+    for server in server_hardware_all:
+        applicable_profile = 'None'
+        try:
+            available480s = oneview_client.server_profiles.get_available_servers(serverHardwareTypeUri=templates[0]['serverHardwareTypeUri'])
+            for srv in available480s:
+                if server['uri'] == srv['serverHardwareUri']:
+                    applicable_profile = '480'
+        except TypeError:
+            pass
+
+        try:
+            available620s = oneview_client.server_profiles.get_available_servers(serverHardwareTypeUri=templates[1]['serverHardwareTypeUri'])
+            for srv in available620s:
+                if server['uri'] == srv['serverHardwareUri']:
+                    applicable_profile = '620'
+        except TypeError:
+            pass
+
+        data2print.append({
+            'shortModel': server['shortModel'],
+            'serverProfileUri': server['serverProfileUri'],
+            'name': server['name'],
+            'uuid': server['uuid'],
+            'powerState': server['powerState'],
+            'owner': resa.get(server['uuid']),
+            'applicable_profile': applicable_profile
+            })
+    html = render_template("availablexml.html", data2print, config["ip"])
+    return html
 
 @app.route('/ready2deploy')
 def ready2deploy():

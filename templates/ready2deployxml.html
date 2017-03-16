@@ -1,0 +1,246 @@
+{% extends "navbar.html" %}
+
+{% block scripts %}
+<script>
+$( document ).ready(function() {
+	console.log( "Document ready !" );
+    {%- for server in  r %}
+    checkinput("{{ server['uuid'] }}");
+     {% endfor %}
+
+    status();
+});
+
+
+function reserve(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/reserve"
+        owner = '#' + uuid + '-owner';
+        reserveid = '#' + uuid + '-reserve';
+        releaseid = '#' + uuid + '-release';
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            msg = msg.data + " registered.";
+            notify(msg);
+            $(reserveid).prop("disabled", true);
+            $(releaseid).prop("disabled", false);
+            $(deployid).prop("disabled", false);
+        }
+
+        var data = {
+            owner: $(owner).val(),
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function release(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/release"
+        owner = '#' + uuid + '-owner';
+        reserveid = '#' + uuid + '-reserve';
+        releaseid = '#' + uuid + '-release';
+        deployid = '#' + uuid + '-deploy';
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            msg = msg.data + " released";
+            notify(msg);
+            $(reserveid).prop("disabled", true);
+            $(releaseid).prop("disabled", true);
+            $(deployid).prop("disabled", true);
+            $(owner).val('');
+        }
+
+        var data = {
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function deploy(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/deploy"
+        deployid = '#' + uuid + '-deploy';
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            console.log(msg.data)
+        }
+
+        var data = {
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) {
+            // Disable deploy button to avoid multiple request on double click
+            $(deployid).prop("disabled", true);
+            ws.send(JSON.stringify(data))
+        };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function openconsole(uuid){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/console"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            console.log(msg.data)
+            window.open(msg.data)
+        }
+
+        var data = {
+            uuid: uuid
+        };
+        console.log(data)
+        // Send the msg object as a JSON-formatted string.
+        ws.onopen = function (event) { ws.send(JSON.stringify(data)) };
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function status(){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/status"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            var data = JSON.parse(msg.data);
+            console.log(data);
+            status = '#' + data.uuid + '-status';
+            if (data.status == 'OS deployed, rebooting'){
+                data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + data.status;
+            }else if (data.status == 'Deployment in progress'){
+                data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + data.status;
+            }else if (data.status == 'System ready'){
+                data.status = data.status + ' at ' + data.ipaddress;
+            }
+            // Show message
+            $(status).html(data.status);
+        }
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function checkinput(uuid){
+    owner = '#' + uuid + '-owner';
+    reserveid = '#' + uuid + '-reserve';
+    releaseid = '#' + uuid + '-release';
+    deployid = '#' + uuid + '-deploy';
+    if ($(owner).val() == ''){
+        $(reserveid).prop("disabled", true);
+        $(releaseid).prop("disabled", true);
+        $(deployid).prop("disabled", true);
+    }else{
+        $(reserveid).prop("disabled", true);
+        $(releaseid).prop("disabled", false);
+        $(deployid).prop("disabled", false);
+    }
+}
+
+
+function allowreserve(uuid){
+    owner = '#' + uuid + '-owner';
+    reserveid = '#' + uuid + '-reserve';
+    $(reserveid).prop("disabled", false);
+    }
+
+</script>
+{% endblock %}
+
+
+{% block navmenu %}
+<!-- Menu -->
+<li><a href="/available">Available servers</a></li>
+<li class="active"><a href="/ready2deploy">Reserve and deploy</a></li>
+<li><a href="/use">Use servers</a></li>
+{% endblock %}
+
+
+{% block content %}
+    <h1>Ready to deploy servers</h1>
+    <p class="text-left lead">This is the list of servers that can be reserved and deployed by your team.</p>
+    <div class="table-responsive">
+    <table class="table">
+    <thead>
+    <tr>
+      <th>Server image</th>
+      <th>Server type</th>
+      <th>Name / Location</th>
+      <th>MAC@</th>
+      <th>Status</th>
+      <th>Owner</th>
+    </tr>
+    </thead>
+    {%- for server in  r %}
+        <tr>
+          {%- if  server["shortModel"]=="SY 480 Gen9" %}
+          <td class="text-left"><img src="/img/sy480.png" class="img-responsive" alt="sy480"></td>
+          {% elif server["shortModel"]=="SY 620 Gen9" %}
+          <td class="text-left"><img src="/img/sy620.png" class="img-responsive" alt="sy620"></td>
+          {% elif server["shortModel"]=="SY 680 Gen9" %}
+          <td class="text-left"><img src="/img/sy680.png" class="img-responsive" alt="sy620"></td>
+          {% else %}
+          <td class="text-left"><img src="/img/server.png" class="img-responsive" alt="genericsrv"></td>
+          {%- endif %}
+          <td class="text-left">{{ server["shortModel"] }}</td>
+          <td class="text-left">{{ server["name"] }}</td>
+          <td class="text-left">{{ server["macaddress"] }}</td>
+          <td class="text-left">
+              <div id="{{ server["uuid"] }}-status"></div>
+          </td>
+          <td class="text-left"><input type="text" id="{{ server["uuid"] }}-owner" value="{{ server.owner }}" onkeyup="allowreserve('{{ server["uuid"] }}')"><br><br>
+          <!--
+          <button id="reserve" type="button" class="btn btn-primary" onClick="reserve('{{ server["uuid"] }}')">Reserve</button>
+          <button id="reserve" type="button" class="btn btn-primary" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">Deploy</button>
+          -->
+          <button id="{{ server["uuid"] }}-reserve" type="button" class="btn btn-primary btn-lg btn-block" disabled="disabled" onClick="reserve('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Reserve
+          </button>
+          <button id="{{ server["uuid"] }}-release" type="button" class="btn btn-warning btn-lg btn-block" onClick="release('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Release
+          </button>
+          <button id="{{ server["uuid"] }}-deploy" type="button" class="btn btn-danger btn-lg btn-block" disabled="disabled" onClick="deploy('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-play-circle" aria-hidden="true"></span> Deploy
+          </button>
+          <button id="{{ server["uuid"] }}-console" type="button" class="btn btn-primary btn-lg btn-block" onClick="openconsole('{{ server["uuid"] }}')">
+          <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Console
+          </button>
+          </td>
+        </tr>
+     {% endfor %}
+    </table>
+    </div>
+    <nav class="navbar navbar-default navbar-fixed-bottom">
+        <div class="container">
+            <div id="usermsg"></div>
+        </div>
+    </nav>
+{% endblock %}

@@ -1,0 +1,13 @@
+<Property>
+{% for server in  r -%}
+{% if  not server["serverProfileUri"] -%}
+{% if server["applicable_profile"] != "None" -%}
+    <availableValues>
+        <value>{{ server["uuid"] }}</value>
+        <displayName>{{ server["name"] }} </displayName>	
+        <description>deploy docker on Synergy on {{ server["shortModel"] }} </description>				
+</availableValues>
+{% endif -%}
+{% endif -%}
+{% endfor -%}
+</Property>
