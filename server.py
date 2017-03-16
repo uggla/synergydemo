@@ -96,7 +96,7 @@ def handle_invalid_usage(error):
 def addprofile_route(uuid, synergytype):
     data={'uuid':uuid,
           'type':synergytype}
-    powering(data, 'off')
+    powering(data, 'Off')
     applying_profile(data)
     data = {"status": "ok"}
     resp = jsonify(data)
@@ -109,18 +109,19 @@ def addprofile_route(uuid, synergytype):
 def addprofile_ws(ws):
     data = json.loads(ws.receive())
     ws.send(data["uuid"] + ' sending power off.')
-    powering(data, 'off')
+    powering(data, 'Off')
     ws.send(data["uuid"] + ' applying profile...')
     applying_profile(data)
 
 def powering(data,state):
+    state = state.title()
     server = oneview_client.server_hardware.get(data['uuid'])
     # Power off server
     try:
         configuration = {
             "powerState": state,
             "powerControl": "MomentaryPress"
-        }
+        } 
         oneview_client.server_hardware.update_power_state(
             configuration,
             data["uuid"])
@@ -170,10 +171,10 @@ def deploy_route(uuid):
     if os.path.exists(flagpath):
         os.remove(flagpath)
     # Power off server
-    powering(data,'off')
+    powering(data,'Off')
     time.sleep(10)
     # Power on server
-    powering(data,'on')
+    powering(data,'On')
     data = {"status": "ok"}
     resp = jsonify(data)
     resp.status_code = 200
@@ -189,12 +190,12 @@ def deploy_ws(ws):
     if os.path.exists(flagpath):
         os.remove(flagpath)
     # Power off server
-    powering(data,'off')
+    powering(data,'Off')
     msg = data["uuid"] + "requested to stop."
     ws.send(msg)
     time.sleep(10)
     # Power on server
-    powering(data,'on')
+    powering(data,'On')
     msg = data["uuid"] + "powered on."
     ws.send(msg)
 
