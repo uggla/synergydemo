@@ -91,18 +91,34 @@ def handle_invalid_usage(error):
     return response
 
 
+
+@app.route('/addprofile/<uuid>/<synergytype>')
+def addprofile_route(uuid, synergytype):
+    data={'uuid':uuid,
+          'type':synergytype}
+    powering(data, 'off')
+    applying_profile(data)
+    data = {"status": "ok"}
+    resp = jsonify(data)
+    resp.status_code = 200
+    return resp
+   
+
+
 @sockets.route('/addprofile')
-def addprofile(ws):
+def addprofile_ws(ws):
     data = json.loads(ws.receive())
-    server = oneview_client.server_hardware.get(data['uuid'])
-    templatename = 'Boot iPXE SY' + data['type']
-    template = oneview_client.server_profile_templates.get_by_name(
-        templatename)
-    # Power off server
     ws.send(data["uuid"] + ' sending power off.')
+    powering(data, 'off')
+    ws.send(data["uuid"] + ' applying profile...')
+    applying_profile(data)
+
+def powering(data,state):
+    server = oneview_client.server_hardware.get(data['uuid'])
+    # Power off server
     try:
         configuration = {
-            "powerState": "Off",
+            "powerState": state,
             "powerControl": "MomentaryPress"
         }
         oneview_client.server_hardware.update_power_state(
@@ -111,6 +127,11 @@ def addprofile(ws):
     except HPOneViewException as e:
         print(e.msg)
 
+
+def applying_profile(data):
+    server = oneview_client.server_hardware.get(data['uuid'])
+    templatename = 'Boot iPXE SY' + data['type']
+    template = oneview_client.server_profile_templates.get_by_name(templatename)
     # Get new profile
     profile = oneview_client.server_profile_templates.get_new_profile(
         template['uri'])
@@ -124,7 +145,6 @@ def addprofile(ws):
     except HPOneViewException as e:
         print(e.msg)
 
-    ws.send(data["uuid"] + ' applying profile...')
 
 
 @sockets.route('/reserve')
@@ -140,9 +160,27 @@ def release(ws):
     resa.release(data["uuid"])
     ws.send(data["uuid"])
 
+@app.route('/deploy/<uuid>')
+def deploy_route(uuid):
+    data={'uuid':uuid}
+    server = oneview_client.server_hardware.get(data['uuid'])
+    profile = oneview_client.server_profiles.get(server['serverProfileUri'])
+    macaddress = get_mac(profile)
+    flagpath = 'flags/' + macaddress
+    if os.path.exists(flagpath):
+        os.remove(flagpath)
+    # Power off server
+    powering(data,'off')
+    time.sleep(10)
+    # Power on server
+    powering(data,'on')
+    data = {"status": "ok"}
+    resp = jsonify(data)
+    resp.status_code = 200
+    return resp
 
 @sockets.route('/deploy')
-def deploy(ws):
+def deploy_ws(ws):
     data = json.loads(ws.receive())
     server = oneview_client.server_hardware.get(data['uuid'])
     profile = oneview_client.server_profiles.get(server['serverProfileUri'])
@@ -151,31 +189,12 @@ def deploy(ws):
     if os.path.exists(flagpath):
         os.remove(flagpath)
     # Power off server
-    try:
-        configuration = {
-            "powerState": "Off",
-            "powerControl": "MomentaryPress"
-        }
-        oneview_client.server_hardware.update_power_state(
-            configuration,
-            data["uuid"])
-    except HPOneViewException as e:
-        print(e.msg)
-
+    powering(data,'off')
     msg = data["uuid"] + "requested to stop."
     ws.send(msg)
     time.sleep(10)
-    # Power off server
-    try:
-        configuration = {
-            "powerState": "On",
-            "powerControl": "MomentaryPress"
-        }
-        oneview_client.server_hardware.update_power_state(
-            configuration,
-            data["uuid"])
-    except HPOneViewException as e:
-        print(e.msg)
+    # Power on server
+    powering(data,'on')
     msg = data["uuid"] + "powered on."
     ws.send(msg)
 
