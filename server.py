@@ -112,40 +112,6 @@ def addprofile_ws(ws):
     applying_profile(data)
 
 
-def powering(data, state):
-    state = state.title()
-    # Power off server
-    try:
-        configuration = {
-            "powerState": state,
-            "powerControl": "MomentaryPress"
-        }
-        oneview_client.server_hardware.update_power_state(
-            configuration,
-            data["uuid"])
-    except HPOneViewException as e:
-        print(e.msg)
-
-
-def applying_profile(data):
-    server = oneview_client.server_hardware.get(data['uuid'])
-    templatename = 'Boot iPXE SY' + data['type']
-    template = oneview_client.server_profile_templates.get_by_name(
-            templatename)
-    # Get new profile
-    profile = oneview_client.server_profile_templates.get_new_profile(
-        template['uri'])
-
-    name = 'iPXE-' + str(uuid.uuid4()).split('-')[-1]
-    profile['name'] = name
-    profile['serverHardwareUri'] = server['uri']
-    try:
-        # Create a server profile
-        oneview_client.server_profiles.create(profile, 10)
-    except HPOneViewException as e:
-        print(e.msg)
-
-
 @sockets.route('/reserve')
 def reserve_ws(ws):
     data = json.loads(ws.receive())
@@ -303,13 +269,20 @@ def availablexml():
     # Get hardware
     server_hardware_all = oneview_client.server_hardware.get_all()
     # Get templates
-    templates = [oneview_client.server_profile_templates.get_by_name('Boot iPXE SY480'), oneview_client.server_profile_templates.get_by_name('Boot iPXE SY620')]
+    templates = \
+        [oneview_client.server_profile_templates.get_by_name(
+            'Boot iPXE SY480'),
+            oneview_client.server_profile_templates.get_by_name(
+            'Boot iPXE SY620')]
     # Craft required data
     data2print = []
     for server in server_hardware_all:
         applicable_profile = 'None'
         try:
-            available480s = oneview_client.server_profiles.get_available_servers(serverHardwareTypeUri=templates[0]['serverHardwareTypeUri'])
+            available480s = \
+                oneview_client.server_profiles.get_available_servers(
+                    serverHardwareTypeUri=templates[0]
+                                                   ['serverHardwareTypeUri'])
             for srv in available480s:
                 if server['uri'] == srv['serverHardwareUri']:
                     applicable_profile = '480'
@@ -317,7 +290,10 @@ def availablexml():
             pass
 
         try:
-            available620s = oneview_client.server_profiles.get_available_servers(serverHardwareTypeUri=templates[1]['serverHardwareTypeUri'])
+            available620s = \
+                oneview_client.server_profiles.get_available_servers(
+                    serverHardwareTypeUri=templates[1]
+                                                   ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
                     applicable_profile = '620'
@@ -549,6 +525,40 @@ def get_mac(profile):
     macaddress = profile['connections'][0]['mac'].lower()
     macaddress = macaddress.replace(':', '')
     return macaddress
+
+
+def powering(data, state):
+    state = state.title()
+    # Power off server
+    try:
+        configuration = {
+            "powerState": state,
+            "powerControl": "MomentaryPress"
+        }
+        oneview_client.server_hardware.update_power_state(
+            configuration,
+            data["uuid"])
+    except HPOneViewException as e:
+        print(e.msg)
+
+
+def applying_profile(data):
+    server = oneview_client.server_hardware.get(data['uuid'])
+    templatename = 'Boot iPXE SY' + data['type']
+    template = oneview_client.server_profile_templates.get_by_name(
+        templatename)
+    # Get new profile
+    profile = oneview_client.server_profile_templates.get_new_profile(
+        template['uri'])
+
+    name = 'iPXE-' + str(uuid.uuid4()).split('-')[-1]
+    profile['name'] = name
+    profile['serverHardwareUri'] = server['uri']
+    try:
+        # Create a server profile
+        oneview_client.server_profiles.create(profile, 10)
+    except HPOneViewException as e:
+        print(e.msg)
 
 
 if __name__ == "__main__":
