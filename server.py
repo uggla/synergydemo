@@ -331,7 +331,7 @@ def availablexml():
             'owner': resa.get(server['uuid']),
             'applicable_profile': applicable_profile
             })
-    html = render_template("availablexml.html", data2print, config["ip"])
+    html = render_template("available.xml", data2print, config["ip"])
     return html
 
 
