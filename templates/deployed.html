@@ -7,6 +7,7 @@ $( document ).ready(function() {
 	console.log( "Document ready !" );
 
     status();
+    containers();
 });
 
 
@@ -37,6 +38,61 @@ function status(){
             // Show message
             $(status).html(data.status);
         }
+    } else {
+        alert("WebSocket not supported");
+    }
+}
+
+
+function containers(){
+    if ("WebSocket" in window) {
+        url = "ws://" + server + "/containers"
+
+        ws = new WebSocket(url);
+
+        ws.onmessage = function (msg) {
+            var data = JSON.parse(msg.data);
+            var html = '';
+            var containers = '';
+            console.log(data);
+            for (server of data.servers){
+                html = '<table class="table table-bordered">' +
+                       '<tr><th>Container name</th><th>Image</th><th>Port mapping (host:cont)</th></tr>';
+                for (container of server.containers){
+                    containers = '#' + server.uuid + '-containers';
+                    var cports = container.NetworkSettings.Ports;
+                    var portmap = '';
+                    console.log(cports);
+                    console.log(Object.keys(cports));
+                    for (p of Object.keys(cports)){
+                        if (!!cports[p]){
+                            console.log(cports[p][0].HostPort);
+                            portmap += '<p><a href="http://' +
+                                        server.ipaddress + ':' +
+                                        cports[p][0].HostPort +
+                                        '" target="_blank">' +
+                                        cports[p][0].HostPort +
+                                        '</a>:' + p + '</p>';
+                        }
+                    }
+                    html += '<tr>'+
+                            '<td class="text-left">' +
+                            container.Name.replace('/','') +
+                            '</td>' +
+                            '<td class="text-left">' +
+                            container.Config.Image +
+                            '</td>' +
+                            '<td class="text-left">' +
+                            portmap +
+                            '</td>' +
+                            '</tr>';
+                }
+                html += '</table>';
+            }
+            //console.log(html);
+            // Show message
+            $(containers).html(html);
+            }
     } else {
         alert("WebSocket not supported");
     }
@@ -72,13 +128,13 @@ function status(){
         {%- if not server["ipaddress"]=='' %}
         <tr>
           {%- if  server["shortModel"]=="SY 480 Gen9" %}
-          <td class="text-left"><img src="/img/sy480.png" class="img-responsive" alt="sy480"></td>
+          <td class="text-left" rowspan="2"><img src="/img/sy480.png" class="img-responsive" alt="sy480"></td>
           {% elif server["shortModel"]=="SY 620 Gen9" %}
-          <td class="text-left"><img src="/img/sy620.png" class="img-responsive" alt="sy620"></td>
+          <td class="text-left" rowspan="2"><img src="/img/sy620.png" class="img-responsive" alt="sy620"></td>
           {% elif server["shortModel"]=="SY 680 Gen9" %}
-          <td class="text-left"><img src="/img/sy680.png" class="img-responsive" alt="sy620"></td>
+          <td class="text-left" rowspan="2"><img src="/img/sy680.png" class="img-responsive" alt="sy620"></td>
           {% else %}
-          <td class="text-left"><img src="/img/server.png" class="img-responsive" alt="genericsrv"></td>
+          <td class="text-left" rowspan="2"><img src="/img/server.png" class="img-responsive" alt="genericsrv"></td>
           {%- endif %}
           <td class="text-left">{{ server["shortModel"] }}</td>
           <td class="text-left">{{ server["name"] }}</td>
@@ -91,8 +147,10 @@ function status(){
           </button>
           </td>
         </tr>
+        <tr>
+            <td class="text-left" id="{{ server["uuid"] }}-containers" colspan="4"></td>
+        </tr>
         {%- endif %}
-
      {% endfor %}
     </table>
     </div>

@@ -214,6 +214,28 @@ def status(ws):
         time.sleep(5)
 
 
+@sockets.route('/containers')
+def containers(ws):
+    while not ws.closed:
+        data = {"servers": []}
+        servers = get_deployed_servers()
+        for server in servers:
+            if not server["ipaddress"]:
+                break
+            url = 'http://' + server["ipaddress"] + ':4243'
+            client = docker.DockerClient(base_url=url)
+            containers = client.containers.list()
+
+            containers_attrs = []
+            for container in containers:
+                containers_attrs.append(container.attrs)
+            data["servers"].append({"uuid": server['uuid'],
+                                    "ipaddress": server['ipaddress'],
+                                    "containers": containers_attrs})
+        ws.send(json.dumps(data))
+    time.sleep(5)
+
+
 @app.route('/')
 @app.route('/available')
 def available():
@@ -342,36 +364,7 @@ def ready2deploy():
 @app.route('/use')
 def deployed():
     global config
-    # Get hardware
-    server_hardware_all = oneview_client.server_hardware.get_all()
-    # Craft required data
-    data2print = []
-    for server in server_hardware_all:
-        data = {}
-        if server['serverProfileUri'] is not None:
-            profile = oneview_client.server_profiles.get(
-                server['serverProfileUri'])
-            if 'iPXE' in profile["name"]:
-                macaddress = get_mac(profile)
-                filename = "flags/" + macaddress
-                if os.path.exists(filename):
-                    data = read_tracefile(macaddress)
-                    try:
-                        data["ipaddress"]
-                    except KeyError:
-                        data["ipaddress"] = ''
-                else:
-                    data["ipaddress"] = ''
-
-                data2print.append({
-                    'shortModel': server['shortModel'],
-                    'name': server['name'],
-                    'uuid': server['uuid'],
-                    'macaddress': macaddress,
-                    'powerState': server['powerState'],
-                    'owner': resa.get(server['uuid']),
-                    'ipaddress': data["ipaddress"]
-                    })
+    data2print = get_deployed_servers()
     html = render_template("deployed.html", data2print, config["ip"])
     return html
 
@@ -559,6 +552,40 @@ def applying_profile(data):
         oneview_client.server_profiles.create(profile, 10)
     except HPOneViewException as e:
         print(e.msg)
+
+
+def get_deployed_servers():
+    # Get hardware
+    server_hardware_all = oneview_client.server_hardware.get_all()
+    # Craft required data
+    data2print = []
+    for server in server_hardware_all:
+        data = {}
+        if server['serverProfileUri'] is not None:
+            profile = oneview_client.server_profiles.get(
+                server['serverProfileUri'])
+            if 'iPXE' in profile["name"]:
+                macaddress = get_mac(profile)
+                filename = "flags/" + macaddress
+                if os.path.exists(filename):
+                    data = read_tracefile(macaddress)
+                    try:
+                        data["ipaddress"]
+                    except KeyError:
+                        data["ipaddress"] = ''
+                else:
+                    data["ipaddress"] = ''
+
+                data2print.append({
+                    'shortModel': server['shortModel'],
+                    'name': server['name'],
+                    'uuid': server['uuid'],
+                    'macaddress': macaddress,
+                    'powerState': server['powerState'],
+                    'owner': resa.get(server['uuid']),
+                    'ipaddress': data["ipaddress"]
+                    })
+    return data2print
 
 
 if __name__ == "__main__":
