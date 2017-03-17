@@ -153,7 +153,7 @@ def reserve_ws(ws):
     ws.send(data["uuid"])
 
 
-@app.route('/reserve')
+@app.route('/reserve/<uuid>')
 def reserve_route(uuid):
     data = {'uuid': uuid}
     resa.reserve(data["uuid"], 'Aerouser')
@@ -218,6 +218,20 @@ def console(ws):
             data["uuid"])
     msg = remote_console_url
     ws.send(msg["javaRemoteConsoleUrl"])
+
+
+@app.route('/status<uuid>')
+def status_route(uuid):
+    server_hardware_all = oneview_client.server_hardware.get_all()
+    for server in server_hardware_all:
+        if server['serverProfileUri'] is not None:
+            profile = oneview_client.server_profiles.get(
+                server['serverProfileUri'])
+            if 'iPXE' in profile["name"]:
+                data = define_status(server, profile)
+    resp = jsonify(data)
+    resp.status_code = 200
+    return resp
 
 
 @sockets.route('/status')
