@@ -91,18 +91,16 @@ def handle_invalid_usage(error):
     return response
 
 
-
 @app.route('/addprofile/<uuid>/<synergytype>')
 def addprofile_route(uuid, synergytype):
-    data={'uuid':uuid,
-          'type':synergytype}
+    data = {'uuid': uuid,
+            'type': synergytype}
     powering(data, 'Off')
     applying_profile(data)
     data = {"status": "ok"}
     resp = jsonify(data)
     resp.status_code = 200
     return resp
-   
 
 
 @sockets.route('/addprofile')
@@ -113,15 +111,15 @@ def addprofile_ws(ws):
     ws.send(data["uuid"] + ' applying profile...')
     applying_profile(data)
 
-def powering(data,state):
+
+def powering(data, state):
     state = state.title()
-    server = oneview_client.server_hardware.get(data['uuid'])
     # Power off server
     try:
         configuration = {
             "powerState": state,
             "powerControl": "MomentaryPress"
-        } 
+        }
         oneview_client.server_hardware.update_power_state(
             configuration,
             data["uuid"])
@@ -132,7 +130,8 @@ def powering(data,state):
 def applying_profile(data):
     server = oneview_client.server_hardware.get(data['uuid'])
     templatename = 'Boot iPXE SY' + data['type']
-    template = oneview_client.server_profile_templates.get_by_name(templatename)
+    template = oneview_client.server_profile_templates.get_by_name(
+            templatename)
     # Get new profile
     profile = oneview_client.server_profile_templates.get_new_profile(
         template['uri'])
@@ -147,12 +146,21 @@ def applying_profile(data):
         print(e.msg)
 
 
-
 @sockets.route('/reserve')
-def reserve(ws):
+def reserve_ws(ws):
     data = json.loads(ws.receive())
     resa.reserve(data["uuid"], data["owner"])
     ws.send(data["uuid"])
+
+
+@app.route('/reserve')
+def reserve_route(uuid):
+    data = {'uuid': uuid}
+    resa.reserve(data["uuid"], 'Aerouser')
+    data = {"status": "ok"}
+    resp = jsonify(data)
+    resp.status_code = 200
+    return resp
 
 
 @sockets.route('/release')
@@ -161,9 +169,10 @@ def release(ws):
     resa.release(data["uuid"])
     ws.send(data["uuid"])
 
+
 @app.route('/deploy/<uuid>')
 def deploy_route(uuid):
-    data={'uuid':uuid}
+    data = {'uuid': uuid}
     server = oneview_client.server_hardware.get(data['uuid'])
     profile = oneview_client.server_profiles.get(server['serverProfileUri'])
     macaddress = get_mac(profile)
@@ -171,14 +180,15 @@ def deploy_route(uuid):
     if os.path.exists(flagpath):
         os.remove(flagpath)
     # Power off server
-    powering(data,'Off')
+    powering(data, 'Off')
     time.sleep(10)
     # Power on server
-    powering(data,'On')
+    powering(data, 'On')
     data = {"status": "ok"}
     resp = jsonify(data)
     resp.status_code = 200
     return resp
+
 
 @sockets.route('/deploy')
 def deploy_ws(ws):
@@ -190,12 +200,12 @@ def deploy_ws(ws):
     if os.path.exists(flagpath):
         os.remove(flagpath)
     # Power off server
-    powering(data,'Off')
+    powering(data, 'Off')
     msg = data["uuid"] + "requested to stop."
     ws.send(msg)
     time.sleep(10)
     # Power on server
-    powering(data,'On')
+    powering(data, 'On')
     msg = data["uuid"] + "powered on."
     ws.send(msg)
 
@@ -272,6 +282,7 @@ def available():
     html = render_template("available.html", data2print, config["ip"])
     return html
 
+
 @app.route('/availablexml')
 def availablexml():
     global config
@@ -310,6 +321,7 @@ def availablexml():
             })
     html = render_template("availablexml.html", data2print, config["ip"])
     return html
+
 
 @app.route('/ready2deploy')
 def ready2deploy():

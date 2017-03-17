@@ -3,7 +3,7 @@
 {% if  not server["serverProfileUri"] -%}
 {% if server["applicable_profile"] != "None" -%}
     <availableValues>
-        <value>{{ server["uuid"] }}</value>
+        <value>{{ server["uuid"] }},{{ server["shortModel"] }}</value>
         <displayName>{{ server["name"] }} </displayName>	
         <description>deploy docker on Synergy on {{ server["shortModel"] }} </description>				
 </availableValues>
