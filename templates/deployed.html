@@ -62,15 +62,15 @@ function containers(){
                     containers = '#' + server.uuid + '-containers';
                     var cports = container.NetworkSettings.Ports;
                     var portmap = '';
-                    console.log(cports);
-                    console.log(Object.keys(cports));
+                    //console.log(cports);
+                    //console.log(Object.keys(cports));
                     for (p of Object.keys(cports)){
                         if (!!cports[p]){
-                            console.log(cports[p][0].HostPort);
+                            //console.log(cports[p][0].HostPort);
                             portmap += '<p><a href="http://' +
                                         server.ipaddress + ':' +
                                         cports[p][0].HostPort +
-                                        '" target="_blank">' +
+                                        '" target="_blank"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span> ' +
                                         cports[p][0].HostPort +
                                         '</a>:' + p + '</p>';
                         }
