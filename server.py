@@ -220,7 +220,7 @@ def console(ws):
     ws.send(msg["javaRemoteConsoleUrl"])
 
 
-@app.route('/status<uuid>')
+@app.route('/status/<uuid>')
 def status_route(uuid):
     server_hardware_all = oneview_client.server_hardware.get_all()
     for server in server_hardware_all:
