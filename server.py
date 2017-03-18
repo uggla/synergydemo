@@ -221,7 +221,7 @@ def containers(ws):
         servers = get_deployed_servers()
         for server in servers:
             if not server["ipaddress"]:
-                break
+                continue
             url = 'http://' + server["ipaddress"] + ':4243'
             client = docker.DockerClient(base_url=url)
             containers = client.containers.list()
