@@ -9,6 +9,7 @@ $( document ).ready(function() {
      {% endfor %}
 
     status();
+    $('.dropdown-toggle').removeClass('disabled');
 });
 
 
@@ -172,6 +173,13 @@ function allowreserve(uuid){
     $(reserveid).prop("disabled", false);
     }
 
+
+function soft(uuid, soft){
+    console.log(soft);
+    softwareselid = '#' + uuid + '-softwaresel';
+    $(softwareselid).html(soft);
+}
+
 </script>
 {% endblock %}
 
@@ -195,6 +203,7 @@ function allowreserve(uuid){
       <th>Server type</th>
       <th>Name / Location</th>
       <th>MAC@</th>
+      <th>Software</th>
       <th>Status</th>
       <th>Owner</th>
     </tr>
@@ -205,8 +214,6 @@ function allowreserve(uuid){
           <td class="text-left"><img src="/img/sy480.png" class="img-responsive" alt="sy480"></td>
           {% elif server["shortModel"]=="SY 620 Gen9" %}
           <td class="text-left"><img src="/img/sy620.png" class="img-responsive" alt="sy620"></td>
-          {% elif server["shortModel"]=="SY 660 Gen9" %}
-          <td class="text-left"><img src="/img/sy660.png" class="img-responsive" alt="sy660"></td>
           {% elif server["shortModel"]=="SY 680 Gen9" %}
           <td class="text-left"><img src="/img/sy680.png" class="img-responsive" alt="sy620"></td>
           {% else %}
@@ -215,6 +222,19 @@ function allowreserve(uuid){
           <td class="text-left">{{ server["shortModel"] }}</td>
           <td class="text-left">{{ server["name"] }}</td>
           <td class="text-left">{{ server["macaddress"] }}</td>
+          <td class="text-left">
+              <div class="dropdown">
+                  <button class="btn btn-default dropdown-toggle" type="button" id="{{ server["uuid"] }}-dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                      <span id="{{ server["uuid"] }}-softwaresel">Docker</span>
+                      <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                      <li><a href="#" onClick="soft('{{ server["uuid"] }}', 'Docker')">Docker</a></li>
+                      <li><a href="#" onClick="soft('{{ server["uuid"] }}', 'Vmware ESX')">Vmware ESX</a></li>
+                      <li><a href="#" onClick="soft('{{ server["uuid"] }}', 'Openstack')">Openstack</a></li>
+                  </ul>
+              </div>
+          </td>
           <td class="text-left">
               <div id="{{ server["uuid"] }}-status"></div>
           </td>
