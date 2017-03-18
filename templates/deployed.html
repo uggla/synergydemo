@@ -56,10 +56,10 @@ function containers(){
             var containers = '';
             console.log(data);
             for (server of data.servers){
+                containers = '#' + server.uuid + '-containers';
                 html = '<table class="table table-bordered">' +
                        '<tr><th>Container name</th><th>Image</th><th>Port mapping (host:cont)</th></tr>';
                 for (container of server.containers){
-                    containers = '#' + server.uuid + '-containers';
                     var cports = container.NetworkSettings.Ports;
                     var portmap = '';
                     //console.log(cports);
@@ -88,11 +88,9 @@ function containers(){
                             '</tr>';
                 }
                 html += '</table>';
-            }
-            //console.log(html);
-            // Show message
             $(containers).html(html);
             }
+        }
     } else {
         alert("WebSocket not supported");
     }

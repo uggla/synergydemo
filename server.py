@@ -233,7 +233,7 @@ def containers(ws):
                                     "ipaddress": server['ipaddress'],
                                     "containers": containers_attrs})
         ws.send(json.dumps(data))
-    time.sleep(5)
+        time.sleep(5)
 
 
 @app.route('/')
