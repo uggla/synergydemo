@@ -91,6 +91,17 @@ def handle_invalid_usage(error):
     return response
 
 
+@app.route('/deleteprofile/<uuid>')
+def deleting_profile(uuid):
+    data = {'uuid': uuid}
+    powering(data, 'Off')
+    delete_profile(data)
+    data = {"status": "ok"}
+    resp = jsonify(data)
+    resp.status_code = 200
+    return resp
+
+
 @app.route('/addprofile/<uuid>/<synergytype>')
 def addprofile_route(uuid, synergytype):
     data = {'uuid': uuid,
@@ -534,6 +545,20 @@ def powering(data, state):
             data["uuid"])
     except HPOneViewException as e:
         print(e.msg)
+
+
+def delete_profile(data):
+    try:
+        server = oneview_client.server_hardware.get(data['uuid'])
+        profile = oneview_client.server_profiles.get(
+                server['serverProfileUri'])
+        oneview_client.server_profiles.delete(profile, 10)
+        data = define_status(server, profile)
+    except:
+        data = {"msg": "uuid not found"}
+    resp = jsonify(data)
+    resp.status_code = 200
+    return resp
 
 
 def applying_profile(data):
