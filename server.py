@@ -188,13 +188,13 @@ def console(ws):
 
 @app.route('/status/<uuid>')
 def status_route(uuid):
-    server_hardware_all = oneview_client.server_hardware.get_all()
-    for server in server_hardware_all:
-        if server['serverProfileUri'] is not None:
-            profile = oneview_client.server_profiles.get(
+    try:
+        server = oneview_client.server_hardware.get(uuid)
+        profile = oneview_client.server_profiles.get(
                 server['serverProfileUri'])
-            if 'iPXE' in profile["name"]:
-                data = define_status(server, profile)
+        data = define_status(server, profile)
+    except:
+        data = {"msg": "uuid not found"}
     resp = jsonify(data)
     resp.status_code = 200
     return resp
@@ -510,6 +510,7 @@ def define_status(server, profile):
             "macaddress": macaddress,
             "ipaddress": ipaddress,
             "manufacturer": manufacturer,
+            "state": server["state"],
             "timestamp": datetime.datetime.now().isoformat()}
     return data
 
