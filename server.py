@@ -367,7 +367,7 @@ def ready2deploy_csa(uuid):
                 'powerState': server['powerState'],
                 'owner': resa.get(server['uuid'])
                 })
-    html = render_template("ready2deploy.html", data2print, config["ip"])
+    html = render_template("deploying.html", data2print, config["ip"])
     return html
 
 
