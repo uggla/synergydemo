@@ -1,3 +1,4 @@
+{% extends "navbar.html" %}
 {% block scripts %}
 <script>
 $( document ).ready(function() {
@@ -181,13 +182,6 @@ function soft(uuid, soft){
 </script>
 {% endblock %}
 
-
-{% block navmenu %}
-<!-- Menu -->
-<li><a href="/available">Available servers</a></li>
-<li class="active"><a href="/ready2deploy">Reserve and deploy</a></li>
-<li><a href="/use">Deployed servers</a></li>
-{% endblock %}
 
 
 {% block content %}
