@@ -140,6 +140,8 @@ function status(){
                 data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + data.status;
             }else if (data.status == 'System ready'){
                 data.status = data.status + ' at ' + data.ipaddress;
+            }else if (data.state =='ApplyingProfile'){
+                data.status = '<img src="/img/waiting.gif" alt="wait" style="width:20px;height:20px;"> ' + 'Applying profile';
             }
             // Show message
             $(status).html(data.status);
