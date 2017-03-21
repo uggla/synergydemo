@@ -346,6 +346,31 @@ def availablexml():
     return html
 
 
+@app.route('/deploying/<uuid>')
+def ready2deploy_csa(uuid):
+    global config
+    # Get hardware
+    server = oneview_client.server_hardware.get(uuid)
+
+    # Craft required data
+    data2print = []
+    if server['serverProfileUri'] is not None:
+        profile = oneview_client.server_profiles.get(
+            server['serverProfileUri'])
+        if 'iPXE' in profile["name"]:
+            macaddress = get_mac(profile)
+            data2print.append({
+                'shortModel': server['shortModel'],
+                'name': server['name'],
+                'uuid': server['uuid'],
+                'macaddress': macaddress,
+                'powerState': server['powerState'],
+                'owner': resa.get(server['uuid'])
+                })
+    html = render_template("ready2deploy.html", data2print, config["ip"])
+    return html
+
+
 @app.route('/ready2deploy')
 def ready2deploy():
     global config
