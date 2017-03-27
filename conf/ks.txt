@@ -20,7 +20,7 @@ lang en_US.UTF-8
 
 # Network information
 network  --bootproto=dhcp --device=link --noipv6 --activate
-network  --hostname=localhost.localdomain
+network  --hostname=synergyblade.hybridit.hpecic.net
 # Reboot after installation
 reboot
 # Root password
@@ -40,8 +40,8 @@ clearpart --all --initlabel --drives=sda
 %post --log=/root/ks-post.log
 cat > /etc/yum.repos.d/centos.repo << EOF
 [base]
-# Add EPEL repo
-name=RHEL-$releasever - Base
+# Add Centos Repo
+name=Centos-$releasever - Base
 baseurl=http://labossi.labossi.hpintelco.org/mrepo/centos-7.2-x86_64/RPMS.os
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
@@ -56,7 +56,7 @@ cat >>/root/.ssh/authorized_keys << EOF
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC24cU/CDlwY8BEDIBakUoe1mO8scx7HRODZNfPoBD8sY/RlqZHdRVM40RTZfKk8GbNqoFECpaa1xEfCUtAEaP+ZBbu9fQef2ceoziRDA0WmAwFc1WKLN7HZ1tcUKL86eDxnArFbQUeQowJKJuYlPCf5lwKcpC3bc6uUlukzZiggAIck9of0kn77XzENrbbrcGVb9NuTA+0M5gXm4NL5HfhnKmIiye5FKXI7obvUdQg466jPYz735qnYAbev92Wiewn4sonApv0VWWtVlmE4sM5eV6PCULGoLhsUtT3vyXAjCEfXyTKLF/RqDt7N1p6qTnBpUVpcxg5cFPOhLUkNlJP itadmin@ansible
 EOF
 
-# Install docker engince CS
+# Install docker engine CS
 yum install -y yum-utils
 yum-config-manager --add-repo https://packages.docker.com/1.13/yum/repo/main/centos/7
 yum makecache fast
@@ -70,7 +70,8 @@ sed -i 's#^ExecStart.*#ExecStart=/usr/bin/dockerd -H 0.0.0.0:4243 -H unix:///var
 # Send trace OS ready
 cat >>/etc/rc.d/rc.local << EOF
 exec > /root/rc.local.log 2>&1
-curl -X POST 10.3.88.10:5000/deploy/os -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3.88 | grep link | awk '{print $2}' | sed 's/://g')\",\"ipaddress\":\"$(ip addr show | grep 10.3.88 | grep inet | awk '{print $2}' | awk -F '/' '{print $1}')\"}" --header Content-Type:application/json
+echo curl -X POST 10.3.88.10:5000/deploy/os -d "{\"macaddress\":\"\$(ip a show | grep -B1 10.3.88 | grep link | awk '{print \$2}' | sed 's/://g')\",\"ipaddress\":\"\$(ip addr show | grep 10.3.88 | grep inet | awk '{print \$2}' | awk -F '/' '{print \$1}')\"}" --header Content-Type:application/json
+curl -X POST 10.3.88.10:5000/deploy/os -d "{\"macaddress\":\"\$(ip a show | grep -B1 10.3.88 | grep link | awk '{print \$2}' | sed 's/://g')\",\"ipaddress\":\"\$(ip addr show | grep 10.3.88 | grep inet | awk '{print \$2}' | awk -F '/' '{print \$1}')\"}" --header Content-Type:application/json
 # Run hello-world
 until docker info; do sleep 2; done
 sleep 20
@@ -90,6 +91,7 @@ chmod +x /usr/local/bin/docker-compose
 EOF
 
 # Send trace OS installed and reboot in progress
+echo curl -X POST 10.3.88.10:5000/deploy/complete -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3.88 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
 curl -X POST 10.3.88.10:5000/deploy/complete -d "{\"macaddress\":\"$(ip a show | grep -B1 10.3.88 | grep link | awk '{print $2}' | sed 's/://g')\"}" --header Content-Type:application/json
 %end
 

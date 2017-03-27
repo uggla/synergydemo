@@ -3,7 +3,7 @@
 A small application to highlight HPE Synergy hardware and especially the Oneview unified API.
 This is a home made application that allow user to Reserve, deploy and run containers on the underlying hardware.
 
-This application uses python oneview, docker libraries.
+This application uses python oneview and docker libraries.
 
 # Screenshots
 
