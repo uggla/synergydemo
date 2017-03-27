@@ -612,7 +612,8 @@ def get_deployed_servers():
     data2print = []
     for server in server_hardware_all:
         data = {}
-        if server['serverProfileUri'] is not None:
+        if server['serverProfileUri'] is not None and \
+           server['state'] != 'Applying profile':
             profile = oneview_client.server_profiles.get(
                 server['serverProfileUri'])
             if 'iPXE' in profile["name"]:
