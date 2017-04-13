@@ -283,7 +283,7 @@ def available():
                                                    ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
-                    applicable_profile = '480FC'
+                    applicable_profile = '480 FC'
         except TypeError:
             pass
 
@@ -335,7 +335,7 @@ def availablexml():
                                                    ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
-                    applicable_profile = '480FC'
+                    applicable_profile = '480 FC'
         except TypeError:
             pass
 
@@ -594,7 +594,7 @@ def delete_profile(data):
 
 def applying_profile(data):
     server = oneview_client.server_hardware.get(data['uuid'])
-    templatename = 'Boot iPXE SY' + data['type']
+    templatename = 'SY' + data['type'] + ' - Boot iPXE'
     template = oneview_client.server_profile_templates.get_by_name(
         templatename)
     # Get new profile
