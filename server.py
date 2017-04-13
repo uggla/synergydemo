@@ -255,8 +255,12 @@ def available():
     server_hardware_all = oneview_client.server_hardware.get_all()
     # Get templates
     templates = [
-        oneview_client.server_profile_templates.get_by_name('Boot iPXE SY480'),
-        oneview_client.server_profile_templates.get_by_name('Boot iPXE SY620')]
+        oneview_client.server_profile_templates.get_by_name(
+            'SY480 - Boot iPXE'),
+        oneview_client.server_profile_templates.get_by_name(
+            'SY480 FC - Boot iPXE'),
+        oneview_client.server_profile_templates.get_by_name(
+            'SY620 - Boot iPXE')]
     # Craft required data
     data2print = []
     for server in server_hardware_all:
@@ -279,7 +283,7 @@ def available():
                                                    ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
-                    applicable_profile = '620'
+                    applicable_profile = '480FC'
         except TypeError:
             pass
 
@@ -304,7 +308,9 @@ def availablexml():
     # Get templates
     templates = \
         [oneview_client.server_profile_templates.get_by_name(
-            'Boot iPXE SY480'),
+            'SY480 - Boot iPXE'),
+        oneview_client.server_profile_templates.get_by_name(
+            'SY480 FC - Boot iPXE'),
             oneview_client.server_profile_templates.get_by_name(
             'Boot iPXE SY620')]
     # Craft required data
@@ -329,7 +335,7 @@ def availablexml():
                                                    ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
-                    applicable_profile = '620'
+                    applicable_profile = '480FC'
         except TypeError:
             pass
 
