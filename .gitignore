@@ -89,3 +89,6 @@ ENV/
 .ropeproject
 reservation.json
 flags
+
+nohup.out
+start_server_with_cred.sh
