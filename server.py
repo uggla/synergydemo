@@ -258,7 +258,7 @@ def available():
         oneview_client.server_profile_templates.get_by_name(
             'SY480 - Boot iPXE'),
         oneview_client.server_profile_templates.get_by_name(
-            'SY480 FC - Boot iPXE'),
+            'SY480FC - Boot iPXE'),
         oneview_client.server_profile_templates.get_by_name(
             'SY620 - Boot iPXE')]
     # Craft required data
@@ -283,7 +283,7 @@ def available():
                                                    ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
-                    applicable_profile = '480 FC'
+                    applicable_profile = '480FC'
         except TypeError:
             pass
 
@@ -310,7 +310,7 @@ def availablexml():
         [oneview_client.server_profile_templates.get_by_name(
             'SY480 - Boot iPXE'),
         oneview_client.server_profile_templates.get_by_name(
-            'SY480 FC - Boot iPXE'),
+            'SY480FC - Boot iPXE'),
             oneview_client.server_profile_templates.get_by_name(
             'Boot iPXE SY620')]
     # Craft required data
@@ -335,7 +335,7 @@ def availablexml():
                                                    ['serverHardwareTypeUri'])
             for srv in available620s:
                 if server['uri'] == srv['serverHardwareUri']:
-                    applicable_profile = '480 FC'
+                    applicable_profile = '480FC'
         except TypeError:
             pass
 
